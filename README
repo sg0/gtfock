@@ -1,3 +1,9 @@
+Notes:
+======
+This is a version of gtfock that aims to use Elemental 
+distributed dense linear algebra package (by Jack Poulson), 
+instead of the Global Arrays toolkit. 
+
 ================================================================
 A. Setup
 ================================================================

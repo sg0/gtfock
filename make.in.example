@@ -2,8 +2,8 @@ CC  = icc
 CXX = icpc
 FC  = ifort
 AR  = xiar rcs
-MPICC  = /software/mvapich2-intel-psm-1.9.5/bin/mpicc
-MPICXX = /software/mvapich2-intel-psm-1.9.5/bin/mpicxx
+MPICC  = mpiicc
+MPICXX = mpiicpc
 
 DYNAMIC     = 1
 DO_SCF      = 0
@@ -11,27 +11,23 @@ SCF_TIMMING = 0
 SCF_OUT     = 0
 
 #OPTFLAGS = -offload-option,mic,compiler,"-z defs -no-opt-prefetch"
-OPTFLAGS  = -no-offload
+OPTFLAGS  = -qno-offload
 OPTFLAGS += -m64 -xHost
 CFLAGS    = -O3 -Wall -openmp -std=gnu99 -fasm-blocks
 CFLAGS   += -Wunknown-pragmas -Wunused-variable
 CFLAGS   += ${OPTFLAGS}
 
-BLAS_INCDIR      = /soft/mkl/11.1.0.080/mkl/include
-BLAS_LIBDIR      = /soft/mkl/11.1.0.080/mkl/lib/intel64
+BLAS_INCDIR      = /opt/intel/mkl/include/
+BLAS_LIBDIR      = /opt/intel/mkl/lib/intel64/
 BLAS_LIBS        = -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -lpthread -lm 
 
-SCALAPACK_INCDIR = /soft/mkl/11.1.0.080/mkl/include
-SCALAPACK_LIBDIR = /soft/mkl/11.1.0.080/mkl/lib/intel64
+SCALAPACK_INCDIR = /opt/intel/mkl/include/
+SCALAPACK_LIBDIR = /opt/intel/mkl/lib/intel64/ 
 SCALAPACK_LIBS   = -lmkl_scalapack_lp64 -lmkl_blacs_intelmpi_lp64
 
-MPI_INCDIR = /software/mvapich2-intel-psm-1.9.5/include 
-MPI_LIBDIR = /software/mvapich2-intel-psm-1.9.5/lib
-MPI_LIBS = -lmpich -lopa -lmpl
-
-GA_TOP = /home/sghosh/builds/ga-5-3
-ARMCI_TOP = /home/sghosh/builds/ga-5-3
-ERD_TOP = /home/sghosh/projects/gtfock/libcint
+MPI_INCDIR = /opt/intel/impi_latest/include64/
+MPI_LIBDIR = /opt/intel/impi_latest/lib64/
+MPI_LIBS =
 
 GA_INCDIR = ${GA_TOP}/include
 GA_LIBDIR = ${GA_TOP}/lib

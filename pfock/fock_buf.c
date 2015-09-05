@@ -6,8 +6,14 @@
 #include <math.h>
 #include <omp.h>
 #include <unistd.h>
+
+#if defined(USE_ELEMENTAL)
+#include "El.h"
+#else
 #include <ga.h>
 #include <macdecls.h>
+#endif
+
 #include <sys/time.h>
 
 #include "config.h"
@@ -32,6 +38,9 @@ void load_local_bufD(PFock_t pfock)
     lo[1] = 0;
     for (int i = 0; i < pfock->num_dmat2; i++) {
     #ifdef GA_NB
+    #if defined(USE_ELEMENTAL)
+        typedef int ga_nbhdl_t;
+    #endif
         ga_nbhdl_t nbnb;
     #endif
         // load local buffers
@@ -39,11 +48,22 @@ void load_local_bufD(PFock_t pfock)
         double *D2;
         double *D3;
         hi[1] = pfock->sizeX1 - 1;
+#if defined(USE_ELEMENTAL)
+	lo[0] = 0;
+	hi[0] = 0;
+	lo[1] = 0;
+        ElGlobalArraysAccess_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D1[i], lo, hi, D1, &ldD );
+        hi[1] = pfock->sizeX2 - 1;
+        ElGlobalArraysAccess_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D2[i], lo, hi, D2, &ldD );
+        hi[1] = pfock->sizeX3 - 1;
+        ElGlobalArraysAccess_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D3[i], lo, hi, D3, &ldD );
+#else
         NGA_Access(pfock->ga_D1[i], lo, hi, &D1, &ldD);
         hi[1] = pfock->sizeX2 - 1;
         NGA_Access(pfock->ga_D2[i], lo, hi, &D2, &ldD);
         hi[1] = pfock->sizeX3 - 1;
         NGA_Access(pfock->ga_D3[i], lo, hi, &D3, &ldD);
+#endif
         int ldD1 = pfock->ldX1;
         int ldD2 = pfock->ldX2;
         int ldD3 = pfock->ldX3;     
@@ -55,9 +75,17 @@ void load_local_bufD(PFock_t pfock)
             hi[1] = loadrow[PLEN * A + P_HI];
             int posrow = loadrow[PLEN * A + P_W];
         #ifdef GA_NB
+        #if defined(USE_ELEMENTAL)
+            ElGlobalArraysNBGet_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D[i], lo, hi, &(D1[posrow]), &ldD1, &nbnb );
+        #else   
             NGA_NbGet(pfock->ga_D[i], lo, hi, &(D1[posrow]), &ldD1, &nbnb);
+        #endif
         #else
+        #if defined(USE_ELEMENTAL)
+            ElGlobalArraysGet_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D[i], lo, hi, &(D1[posrow]), &ldD1 );
+        #else 
             NGA_Get(pfock->ga_D[i], lo, hi, &(D1[posrow]), &ldD1);
+        #endif
         #endif
         }
         // update D2
@@ -67,10 +95,18 @@ void load_local_bufD(PFock_t pfock)
             lo[1] = loadcol[PLEN * B + P_LO];
             hi[1] = loadcol[PLEN * B + P_HI];
             int poscol = loadcol[PLEN * B + P_W];
-        #ifdef GA_NB    
+        #ifdef GA_NB   
+        #if defined(USE_ELEMENTAL)
+            ElGlobalArraysNBGet_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D[i], lo, hi, &(D2[poscol]), &ldD2, &nbnb );
+        #else   
             NGA_NbGet(pfock->ga_D[i], lo, hi, &(D2[poscol]), &ldD2, &nbnb);
+        #endif
         #else
+        #if defined(USE_ELEMENTAL)
+            ElGlobalArraysNBGet_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D[i], lo, hi, &(D2[poscol]), &ldD2 );
+        #else   
             NGA_Get(pfock->ga_D[i], lo, hi, &(D2[poscol]), &ldD2);
+        #endif
         #endif
         }
         // update D3
@@ -83,17 +119,33 @@ void load_local_bufD(PFock_t pfock)
                 hi[1] = loadcol[PLEN * B + P_HI];
                 int poscol = loadcol[PLEN * B + P_W];
             #ifdef GA_NB
+            #if defined(USE_ELEMENTAL)
+                ElGlobalArraysNBGet_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D[i], lo, hi, 
+                                       &(D3[posrow * ldD3 + poscol]), &ldD3, &nbnb );
+            #else   
                 NGA_NbGet(pfock->ga_D[i], lo, hi,
                           &(D3[posrow * ldD3 + poscol]), &ldD3, &nbnb);
+            #endif
             #else
+            #if defined(USE_ELEMENTAL)
+                ElGlobalArraysGet_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D[i], lo, hi, 
+                                     &(D3[posrow * ldD3 + poscol]), &ldD3 );
+            #else   
                 NGA_Get(pfock->ga_D[i], lo, hi,
                         &(D3[posrow * ldD3 + poscol]), &ldD3);        
             #endif
+            #endif
             }
         }
-    #ifdef GA_NB
+    #ifdef GA_NB            
+    #if defined(USE_ELEMENTAL)
+        ElGlobalArraysNBWait_d( *((ElGlobalArrays_d *)eldga), &nbnb );
+    #else
         NGA_NbWait (&nbnb);
     #endif
+    #endif
+    #if defined(USE_ELEMENTAL)
+    #else
         // release update
         lo[0] = myrank;
         hi[0] = myrank;
@@ -104,6 +156,7 @@ void load_local_bufD(PFock_t pfock)
         NGA_Release_update(pfock->ga_D2[i], lo, hi);
         hi[1] = pfock->sizeX3 - 1;
         NGA_Release_update(pfock->ga_D3[i], lo, hi);
+    #endif
     }
 }
 
@@ -130,6 +183,9 @@ void store_local_bufF(PFock_t pfock)
     lo[1] = 0;
     for (int i = 0; i < pfock->num_dmat2; i++) {
     #ifdef GA_NB    
+    #if defined(USE_ELEMENTAL)
+        typedef int ga_nbhdl_t;
+    #endif
         ga_nbhdl_t nbnb;
     #endif
         // local buffers
@@ -137,6 +193,14 @@ void store_local_bufF(PFock_t pfock)
         double *F2;
         double *F3;
         hi[1] = pfock->sizeX1 - 1;
+#if defined(USE_ELEMENTAL)
+        lo[0] = 0; 
+        lo[1] = 0;
+        hi[0] = 0;
+        ElGlobalArraysAccess_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F1[i], lo, hi, F1, &ldF );
+        ElGlobalArraysAccess_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F2[i], lo, hi, F2, &ldF );
+        ElGlobalArraysAccess_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F3[i], lo, hi, F3, &ldF );
+#else
         NGA_Access(pfock->ga_F1[i], lo, hi, &F1, &ldF);
         lo[1] = 0;
         hi[1] = pfock->sizeX2 - 1;
@@ -144,6 +208,7 @@ void store_local_bufF(PFock_t pfock)
         lo[1] = 0;
         hi[1] = pfock->sizeX3 - 1;
         NGA_Access(pfock->ga_F3[i], lo, hi, &F3, &ldF);
+#endif
         int ldF1 = pfock->ldX1;
         int ldF2 = pfock->ldX2;
         int ldF3 = pfock->ldX3;    
@@ -156,10 +221,20 @@ void store_local_bufF(PFock_t pfock)
             hi[1] = loadrow[PLEN * A + P_HI];
             int posrow = loadrow[PLEN * A + P_W];
         #ifdef GA_NB
+        #if defined(USE_ELEMENTAL)
+            ElGlobalArraysNBAccumulate_d( *((ElGlobalArrays_d *)eldga), ga_J[i], lo, hi, 
+                                   &(F1[posrow]), &ldF1, &done, &nbnb );
+        #else
             NGA_NbAcc(ga_J[i], lo, hi, &(F1[posrow]),
-                      &ldF1, &done, &nbnb);    
+                      &ldF1, &done, &nbnb);   
+        #endif 
+        #else
+        #if defined(USE_ELEMENTAL)
+            ElGlobalArraysAcc_d( *((ElGlobalArrays_d *)eldga), ga_J[i], lo, hi, 
+                                 &(F1[posrow]), &ldF1, &done );
         #else
             NGA_Acc(ga_J[i], lo, hi, &(F1[posrow]), &ldF1, &done);
+        #endif
         #endif
         }
 
@@ -171,10 +246,20 @@ void store_local_bufF(PFock_t pfock)
             hi[1] = loadcol[PLEN * B + P_HI];
             int poscol = loadcol[PLEN * B + P_W];
         #ifdef GA_NB
+        #if defined(USE_ELEMENTAL)
+            ElGlobalArraysNBAccumulate_d( *((ElGlobalArrays_d *)eldga), ga_J[i], lo, hi, 
+                              &(F2[poscol]), &ldF2, &done, &nbnb );
+        #else
             NGA_NbAcc(ga_J[i], lo, hi, &(F2[poscol]),
                       &ldF2, &done, &nbnb);
+        #endif
+        #else
+        #if defined(USE_ELEMENTAL)
+            ElGlobalArraysAcc_d( *((ElGlobalArrays_d *)eldga), ga_J[i], lo, hi, 
+                              &(F2[poscol]), &ldF2, &done );
         #else
             NGA_Acc(ga_J[i], lo, hi, &(F2[poscol]), &ldF2, &done);
+        #endif
         #endif
         }
 
@@ -188,17 +273,33 @@ void store_local_bufF(PFock_t pfock)
                 hi[1] = loadcol[PLEN * B + P_HI];
                 int poscol = loadcol[PLEN * B + P_W];
             #ifdef GA_NB
+            #if defined(USE_ELEMENTAL)
+                ElGlobalArraysNBAccumulate_d( *((ElGlobalArrays_d *)eldga), ga_K[i], lo, hi, 
+                                       &(F3[posrow * ldF3 + poscol]), &ldF3, &done, &nbnb );
+            #else
                 NGA_NbAcc(ga_K[i], lo, hi, 
                           &(F3[posrow * ldF3 + poscol]), &ldF3, &done, &nbnb);
+            #endif
+            #else
+            #if defined(USE_ELEMENTAL)
+                ElGlobalArraysAcc_d( *((ElGlobalArrays_d *)eldga), ga_K[i], lo, hi, 
+                              &(F3[posrow * ldF3 + poscol]), &ldF3, &done );
             #else
                 NGA_Acc(ga_K[i], lo, hi, 
                         &(F3[posrow * ldF3 + poscol]), &ldF3, &done);        
             #endif
+            #endif
             }
         }
     #ifdef GA_NB
+    #if defined(USE_ELEMENTAL)
+        ElGlobalArraysNBWait_d( *((ElGlobalArrays_d *)eldga), &nbnb );
+    #else
         NGA_NbWait(&nbnb);
     #endif
+    #endif
+    #if defined(USE_ELEMENTAL)
+    #else
         // update release
         lo[0] = myrank;
         hi[0] = myrank;
@@ -211,8 +312,13 @@ void store_local_bufF(PFock_t pfock)
         lo[1] = 0;
         hi[1] = pfock->sizeX3 - 1;
         NGA_Release(pfock->ga_F3[i], lo, hi);
+     #endif
     }
+#if defined(USE_ELEMENTAL)
+    ElGlobalArraysSync_d( *((ElGlobalArrays_d *)eldga) );
+#else
     GA_Sync();
+#endif
 }
 
 

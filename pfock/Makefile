@@ -13,6 +13,16 @@ ifeq "${DO_SCF}" "1"
 CFLAGS += -D__SCF__
 endif
 
+ifeq "${ELEMENTAL}" "1"
+CFLAGS += -DUSE_ELEMENTAL
+INC = -I./                  \
+      -I../include          \
+      -I${MPI_INCDIR}       \
+      -I${SCALAPACK_INCDIR} \
+      -I${BLAS_INCDIR}      \
+      -I${EL_INCDIR}        \
+      -I${ERD_INCDIR}
+else
 INC = -I./                  \
       -I../include          \
       -I${MPI_INCDIR}       \
@@ -20,6 +30,7 @@ INC = -I./                  \
       -I${BLAS_INCDIR}      \
       -I${GA_INCDIR}        \
       -I${ERD_INCDIR}
+endif
 
 all: ${LIBPFOCK}
 	mkdir -p ../install

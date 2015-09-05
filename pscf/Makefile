@@ -12,31 +12,43 @@ ifeq "${SCF_OUT}" "1"
 CFLAGS += -D__SCF_OUT__
 endif
 
-
 INC = -I./                  \
       -I../install          \
       -I${ERD_INCDIR}       \
       -I${MPI_INCDIR}       \
       -I${SCALAPACK_INCDIR} \
-      -I${BLAS_INCDIR}       
-
-LDFLAGS = -L${MPI_LIBDIR}       \
-          -L${GA_LIBDIR}        \
-          -L${ARMCI_LIBDIR}     \
-          -L${SCALAPACK_LIBDIR} \
-          -L${BLAS_LIBDIR} \
-          -L${ERD_LIBDIR}
+      -I${BLAS_INCDIR} 
 
 PFOCK_LIBS = ../install/libpfock.a
 
+ifeq "${ELEMENTAL}" "1"
+CFLAGS += -DUSE_ELEMENTAL 
+LDFLAGS = -L${MPI_LIBDIR}       \
+          -L${EL_LIBDIR}        \
+          -L${SCALAPACK_LIBDIR} \
+          -L${BLAS_LIBDIR}      \
+          -L${ERD_LIBDIR}
+LIBS = ${MPI_LIBS}       \
+       ${BLAS_LIBS}      \
+       ${SCALAPACK_LIBS} \
+       ${PFOCK_LIBS}     \
+       ${ERD_LIBS}       \
+       ${EL_LIBS}        \
+       -lifcore -limf
+else
+LDFLAGS = -L${MPI_LIBDIR}       \
+          -L${GA_LIBDIR}        \
+          -L${SCALAPACK_LIBDIR} \
+          -L${BLAS_LIBDIR}      \
+          -L${ERD_LIBDIR}
 LIBS = ${MPI_LIBS}       \
        ${BLAS_LIBS}      \
        ${SCALAPACK_LIBS} \
        ${PFOCK_LIBS}     \
        ${ERD_LIBS}       \
        ${GA_LIBS}        \
-       ${ARMCI_LIBS}     \
        -lifcore -limf
+endif
 
 all: ${EXEC} 
 

@@ -1,7 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
+#if defined(USE_ELEMENTAL)
+#include "El.h"
+#else
 #include <ga.h>
+#endif
+
 #include <mkl.h>
 #include <omp.h>
 #include <mpi.h>
@@ -118,7 +124,6 @@ void compute_H(PFock_t pfock, BasisSet_t basis,
     free(oed);
 }
 
-
 void my_peig(int ga_A, int ga_B, int n, int nprow, int npcol, double *eval)
 {
     int myrank;
@@ -135,7 +140,10 @@ void my_peig(int ga_A, int ga_B, int n, int nprow, int npcol, double *eval)
     int hi[2];
     int ld;
     int ione = 1;
-#ifdef GA_NB
+#ifdef GA_NB            
+#if defined(USE_ELEMENTAL)
+    typedef int ga_nbhdl_t;
+#endif
     ga_nbhdl_t nbnb;
 #endif
 
@@ -170,9 +178,19 @@ void my_peig(int ga_A, int ga_B, int n, int nprow, int npcol, double *eval)
             hi[1] = hi[1] >= n ? n - 1 : hi[1];
             ld = ncols;
 #ifdef GA_NB
+       #if defined(USE_ELEMENTAL)
+            ElGlobalArraysNBGet_d( *((ElGlobalArrays_d *)eldga), ga_A, lo, hi, 
+                                   &(Z[(i - 1) * ncols + j - 1]), &ld, &nbnb );
+       #else   
             NGA_NbGet(ga_A, lo, hi, &(Z[(i - 1) * ncols + j - 1]), &ld, &nbnb);
+       #endif
 #else
+       #if defined(USE_ELEMENTAL)
+            ElGlobalArraysNBGet_d( *((ElGlobalArrays_d *)eldga), ga_A, lo, hi, 
+                                   &(Z[(i - 1) * ncols + j - 1]), &ld );
+       #else   
             NGA_Get(ga_A, lo, hi, &(Z[(i - 1) * ncols + j - 1]), &ld);
+       #endif
 #endif
         }
         /* Jeff: Location of NGA_NbWait for flow-control. */
@@ -181,7 +199,11 @@ void my_peig(int ga_A, int ga_B, int n, int nprow, int npcol, double *eval)
     /* Jeff: If one sees flow-control problems with too many
      *       outstanding NbGet operations, then move this call
      *       to the location noted above. */
+#if defined(USE_ELEMENTAL)
+    ElGlobalArraysNBWait_d( *((ElGlobalArrays_d *)eldga), &nbnb );
+#else
     NGA_NbWait(&nbnb);
+#endif
 #endif
     for (int i = 0; i < nrows; i++) {
         for (int j = 0; j < ncols; j++) {
@@ -244,20 +266,35 @@ void my_peig(int ga_A, int ga_B, int n, int nprow, int npcol, double *eval)
             hi[1] = hi[1] >= n ? n - 1 : hi[1];
             ld = ncols;
 #ifdef GA_NB
+       #if defined(USE_ELEMENTAL)
+            ElGlobalArraysNBPut_d( *((ElGlobalArrays_d *)eldga), ga_B, lo, hi, 
+                                   &(A[(i - 1) * ncols + j - 1]), &ld, &nbnb );
+       #else 
             NGA_NbPut(ga_B, lo, hi, &(A[(i - 1) * ncols + j - 1]), &ld, &nbnb);
+       #endif
 #else
+       #if defined(USE_ELEMENTAL)
+            ElGlobalArraysNBPut_d( *((ElGlobalArrays_d *)eldga), ga_B, lo, hi, 
+                                   &(A[(i - 1) * ncols + j - 1]), &ld );
+       #else 
             NGA_Put(ga_B, lo, hi, &(A[(i - 1) * ncols + j - 1]), &ld);
+       #endif
 #endif
         }
         /* Jeff: Location of NGA_NbWait for flow-control. */
     }
 #ifdef GA_NB
+#if defined(USE_ELEMENTAL)
+    ElGlobalArraysNBWait_d( *((ElGlobalArrays_d *)eldga), &nbnb );
+    ElGlobalArraysSync_d( *((ElGlobalArrays_d *)eldga) );
+#else
     /* Jeff: If one sees flow-control problems with too many
      *       outstanding NbPut operations, then move this call
      *       to the location noted above. */
     NGA_NbWait(&nbnb);
-#endif
     GA_Sync();
+#endif
+#endif
 
     mkl_free(A);
     mkl_free(Z);

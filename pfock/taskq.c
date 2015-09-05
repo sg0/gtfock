@@ -1,6 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+
+#if defined(USE_ELEMENTAL)
+#include "El.h"
+#else
 #include <ga.h>
+#endif
 
 #include "config.h"
 #include "taskq.h"
@@ -28,11 +33,18 @@ int init_taskq(PFock_t pfock)
     for (int i = 0; i < npcol; i++) {
         map[i + nprow] = i;
     }
+#if defined(USE_ELEMENTAL)
+    int nga;
+    ElGlobalArraysCreateHandle_i( *((ElGlobalArrays_i *)eliga), &nga);
+    pfock->ga_taskid = nga;
+    ElGlobalArraysSetData_i( *((ElGlobalArrays_i *)eliga), pfock->ga_taskid, 2, dims, 0 );
+#else
     pfock->ga_taskid =
         NGA_Create_irreg(C_INT, 2, dims, "array taskid", block, map);
     if (0 == pfock->ga_taskid) {
         return -1;
     }
+#endif
     PFOCK_FREE(map);
     
     return 0;
@@ -41,14 +53,22 @@ int init_taskq(PFock_t pfock)
 
 void clean_taskq(PFock_t pfock)
 {
+#if defined(USE_ELEMENTAL)
+    ElGlobalArraysDestroy_i( *((ElGlobalArrays_i *)eliga), pfock->ga_taskid );
+#else
     GA_Destroy(pfock->ga_taskid);
+#endif
 }
 
 
 void reset_taskq(PFock_t pfock)
 {
-    int izero = 0;    
+    int izero = 0;   
+#if defined(USE_ELEMENTAL)
+    ElGlobalArraysFill_i( *((ElGlobalArrays_i *)eliga), pfock->ga_taskid, &izero);
+#else   
     GA_Fill(pfock->ga_taskid, &izero);
+#endif
 }
 
 
@@ -58,6 +78,12 @@ int taskq_next(PFock_t pfock, int myrow, int mycol, int ntasks)
 
     idx[0] = myrow;
     idx[1] = mycol;
-    int nxtask = NGA_Read_inc(pfock->ga_taskid, idx, ntasks);   
+    int nxtask;
+#if defined(USE_ELEMENTAL)
+    ElGlobalArraysReadIncrement_i( *((ElGlobalArrays_i *)eliga), pfock->ga_taskid, 
+                                   idx, ntasks, &nxtask);
+#else
+    nxtask = NGA_Read_inc(pfock->ga_taskid, idx, ntasks);   
+#endif
     return nxtask;
 }

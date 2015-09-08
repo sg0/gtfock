@@ -41,7 +41,7 @@ ${LIBPFOCK}: ${OBJS}
 	${AR} $@ $^
 
 %.o : %.c Makefile
-	$(MPICC) ${CFLAGS} ${INC} -c $< -o $@ 
+	$(MPICC) ${CFLAGS} ${INC} -c $< -o $@
 
 clean:
 	rm -f *.o *.s *.d *~ *.a

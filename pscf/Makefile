@@ -24,8 +24,8 @@ PFOCK_LIBS = ../install/libpfock.a
 ifeq "${ELEMENTAL}" "1"
 CFLAGS += -DUSE_ELEMENTAL 
 LDFLAGS = -L${MPI_LIBDIR}       \
-          -L${EL_LIBDIR}        \
           -L${SCALAPACK_LIBDIR} \
+          -L${EL_LIBDIR}        \
           -L${BLAS_LIBDIR}      \
           -L${ERD_LIBDIR}
 LIBS = ${MPI_LIBS}       \
@@ -53,7 +53,7 @@ endif
 all: ${EXEC} 
 
 $(EXEC): $(OBJS) Makefile ${CINT_LIBS} ${PFOCK_LIBS}
-	$(MPICC) ${CFLAGS} ${LDFLAGS} $(OBJS) -o $(EXEC) ${LIBS}
+	$(MPICC) ${CFLAGS} $(OBJS) -o $(EXEC) ${LDFLAGS} ${LIBS}
 
 %.o : %.c Makefile
 	$(MPICC) ${CFLAGS} ${INC} -c $< -o $@ 

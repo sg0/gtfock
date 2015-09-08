@@ -12,10 +12,10 @@ SCF_TIMMING = 0
 SCF_OUT     = 0
 
 #OPTFLAGS = -offload-option,mic,compiler,"-z defs -no-opt-prefetch"
-OPTFLAGS  = -no-offload
+OPTFLAGS  = -offload=none
 OPTFLAGS += -m64 -xHost
 CFLAGS    = -O3 -Wall -openmp -std=c99 -fasm-blocks
-CFLAGS   += -Wunknown-pragmas -Wunused-variable
+CFLAGS   += -Wunknown-pragmas -Wunused-variable -static-libstdc++
 CFLAGS   += ${OPTFLAGS}
 
 BLAS_INCDIR      = -DMKL_ILP64 -I${MKLROOT}/include
@@ -35,7 +35,7 @@ ERD_TOP = /home/sghosh/projects/gtfock/libcint
 
 EL_INCDIR = ${EL_TOP}/include
 EL_LIBDIR = ${EL_TOP}/lib
-EL_LIBS = -lEl -lpmrrr
+EL_LIBS = -lEl
 
 GA_TOP = /home/sghosh/builds/ga-5-3
 ARMCI_TOP = /home/sghosh/builds/ga-5-3

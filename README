@@ -1,8 +1,11 @@
 Notes:
 ======
-This is a version of gtfock that aims to use Elemental 
-distributed dense linear algebra package (by Jack Poulson), 
-instead of the Global Arrays toolkit. 
+This is a version of gtfock that aims to use the modified AXPY 
+interface of Elemental distributed dense linear algebra package
+(original: https://github.com/elemental/Elemental) 
+(ongoing work on AxpyInterface: 
+https://github.com/sg0/elemental). 
+Original gtfock uses PNNL Global Arrays toolkit. 
 
 ================================================================
 A. Setup

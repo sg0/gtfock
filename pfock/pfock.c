@@ -1632,13 +1632,13 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
 #endif
 #else
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysAcc_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F1[i], lo, hi, 
+        ElGlobalArraysAccumulate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F1[i], lo, hi, 
 			     &F1[i * sizeX1], &sizeX1, &done );
         hi[1] = sizeX2 - 1;
-        ElGlobalArraysAcc_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F2[i], lo, hi, 
+        ElGlobalArraysAccumulate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F2[i], lo, hi, 
                              &F2[i * sizeX3], &sizeX2, &done );
         hi[1] = sizeX3 - 1;
-        ElGlobalArraysAcc_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F3[i], lo, hi, 
+        ElGlobalArraysAccumulate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F3[i], lo, hi, 
                              &F3[i * sizeX3], &sizeX3, &done );
 #else
         // save results for local intergrals
@@ -1870,7 +1870,7 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
                 #endif
                 #else
                 #if defined(USE_ELEMENTAL)
-                    ElGlobalArraysAcc_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F1[i], lo, hi, 
+                    ElGlobalArraysAccumulate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F1[i], lo, hi, 
                                          &F1[i * sizeX1], &sizeX1, &done );
                 #else
                     NGA_Acc(pfock->ga_F1[i], lo, hi,
@@ -1894,7 +1894,7 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
                 #endif
                 #else
                 #if defined(USE_ELEMENTAL)
-                    ElGlobalArraysAcc_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F1[i], lo, hi, 
+                    ElGlobalArraysAccumulate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F1[i], lo, hi, 
                                          &F1[i * sizeX1], &sizeX1, &done );
                 #else
                     NGA_Acc(pfock->ga_F1[i], lo, hi,
@@ -1919,7 +1919,7 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
                 #endif
                 #else
                 #if defined(USE_ELEMENTAL)
-                    ElGlobalArraysAcc_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F2[i], lo, hi, 
+                    ElGlobalArraysAccumulate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F2[i], lo, hi, 
                                          &F2[i * sizeX2], &sizeX2, &done );
                 #else
                     NGA_Acc(pfock->ga_F2[i], lo, hi,
@@ -1943,7 +1943,7 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
                 #endif
                 #else
                 #if defined(USE_ELEMENTAL)
-                    ElGlobalArraysAcc_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F2[i], lo, hi, 
+                    ElGlobalArraysAccumulate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F2[i], lo, hi, 
                                          &F2[i * sizeX2], &sizeX2, &done );
                 #else
                     NGA_Acc(pfock->ga_F2[i], lo, hi,
@@ -1967,7 +1967,7 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
             #endif
             #else
             #if defined(USE_ELEMENTAL)
-                ElGlobalArraysAcc_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F3[i], lo, hi, 
+                ElGlobalArraysAccumulate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F3[i], lo, hi, 
                                      &F3[i * sizeX3], &sizeX3, &done );
             #else
                 NGA_Acc(pfock->ga_F3[i], lo, hi,

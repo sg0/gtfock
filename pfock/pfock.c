@@ -374,10 +374,9 @@ static PFockStatus_t create_GA (PFock_t pfock)
 
     sprintf(str, "D_0");
 #if defined(USE_ELEMENTAL)
-    int* ga;
-    ElGlobalArraysCreateHandle_d( *((ElGlobalArrays_d *)eldga), ga);
-    pfock->ga_D[0] = *ga;
-    ElGlobalArraysSetData_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D[0], 2, dims, 0 );
+    int g_a;
+    ElGlobalArraysCreate_d( *((ElGlobalArrays_d *)eldga), 0, 2, dims, str, &g_a);
+    pfock->ga_D[0] = g_a;
 #else
     pfock->ga_D[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
     if (0 == pfock->ga_D[0]) {
@@ -488,9 +487,8 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     sprintf(str, "D1_0");
 #if defined(USE_ELEMENTAL)
     int nga2;
-    ElGlobalArraysCreateHandle_d( *((ElGlobalArrays_d *)eldga), &nga2);
+    ElGlobalArraysCreate_d( *((ElGlobalArrays_d *)eldga), 0, 2, dims, str, &nga2);
     pfock->ga_D1[0] = nga2;
-    ElGlobalArraysSetData_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D1[0], 2, dims, 0 );
 #else
     pfock->ga_D1[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
 #endif
@@ -528,9 +526,8 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     sprintf(str, "D2_0");
 #if defined(USE_ELEMENTAL)
     int nga;
-    ElGlobalArraysCreateHandle_d( *((ElGlobalArrays_d *)eldga), &nga);
+    ElGlobalArraysCreate_d( *((ElGlobalArrays_d *)eldga), 0, 2, dims, str, &nga);
     pfock->ga_D2[0] = nga;
-    ElGlobalArraysSetData_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D2[0], 2, dims, 0 );
 #else
     pfock->ga_D2[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
 #endif
@@ -569,9 +566,8 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     sprintf(str, "D3_0");
 #if defined(USE_ELEMENTAL)
     int nga1;
-    ElGlobalArraysCreateHandle_d( *((ElGlobalArrays_d *)eldga), &nga1);
+    ElGlobalArraysCreate_d( *((ElGlobalArrays_d *)eldga), 0, 2, dims, str, &nga1);
     pfock->ga_D3[0] = nga1;
-    ElGlobalArraysSetData_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D3[0], 2, dims, 0 );
 #else
     pfock->ga_D3[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
 #endif
@@ -879,8 +875,8 @@ PFockStatus_t init_GA(int nbf, int nprow, int npcol,
 {
     // Create EL GlobalArrays object
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysCreate_d( (ElGlobalArrays_d *)eldga );
-    ElGlobalArraysCreate_i( (ElGlobalArrays_i *)eliga );
+    ElGlobalArraysConstruct_d( (ElGlobalArrays_d *)eldga );
+    ElGlobalArraysConstruct_i( (ElGlobalArrays_i *)eliga );
 #endif
 
     /* Sayan: these are not used currently */

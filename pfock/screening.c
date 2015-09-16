@@ -46,10 +46,9 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
     block[0] = nprow;
     block[1] = npcol;           
  #if defined(USE_ELEMENTAL)
-    int* ga;
-    ElGlobalArraysCreateHandle_d( *((ElGlobalArrays_d *)eldga), ga);
-    pfock->ga_screening = *ga;
-    ElGlobalArraysSetData_d( *((ElGlobalArrays_d *)eldga), pfock->ga_screening, 2, dims, 0 ); 
+    int g_a;
+    ElGlobalArraysCreate_d( *((ElGlobalArrays_d *)eldga), 0, 2, dims, "array Screening", &g_a);
+    pfock->ga_screening = g_a;
 #else    
     pfock->ga_screening =
         NGA_Create_irreg(C_DBL, 2, dims, "array Screening", block, map);

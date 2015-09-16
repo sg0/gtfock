@@ -35,9 +35,8 @@ int init_taskq(PFock_t pfock)
     }
 #if defined(USE_ELEMENTAL)
     int nga;
-    ElGlobalArraysCreateHandle_i( *((ElGlobalArrays_i *)eliga), &nga);
+    ElGlobalArraysCreate_d( *((ElGlobalArrays_d *)eldga), 0, 2, dims, "array taskid", &nga);
     pfock->ga_taskid = nga;
-    ElGlobalArraysSetData_i( *((ElGlobalArrays_i *)eliga), pfock->ga_taskid, 2, dims, 0 );
 #else
     pfock->ga_taskid =
         NGA_Create_irreg(C_INT, 2, dims, "array taskid", block, map);
@@ -81,7 +80,7 @@ int taskq_next(PFock_t pfock, int myrow, int mycol, int ntasks)
     int nxtask;
 #if defined(USE_ELEMENTAL)
     ElGlobalArraysReadIncrement_i( *((ElGlobalArrays_i *)eliga), pfock->ga_taskid, 
-                                   idx, ntasks, &nxtask);
+                                   2, idx, ntasks, &nxtask);
 #else
     nxtask = NGA_Read_inc(pfock->ga_taskid, idx, ntasks);   
 #endif

@@ -191,6 +191,11 @@ int main (int argc, char **argv)
     // init MPI
     int myrank;
     int nprocs;
+#if defined (ELEMENTAL)
+    ElInitialize( &argc, &argv );
+    ElMPICommRank( MPI_COMM_WORLD, &myrank );
+    ElMPICommSize( MPI_COMM_WORLD, &nprocs );
+#else
     int provided;
     MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
@@ -198,6 +203,7 @@ int main (int argc, char **argv)
     if (myrank == 0)  {
         printf("MPI level: %d\n", provided);
     }
+#endif
 #if 0
     char hostname[1024];
     gethostname (hostname, 1024);

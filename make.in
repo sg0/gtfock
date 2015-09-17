@@ -15,7 +15,7 @@ SCF_OUT     = 0
 OPTFLAGS  = -offload=none
 OPTFLAGS += -m64 -xHost
 CFLAGS    = -O3 -Wall -openmp -std=c99 -fasm-blocks
-CFLAGS   += -Wunknown-pragmas -Wunused-variable -static-libstdc++
+CFLAGS   += -Wunknown-pragmas -Wunused-variable
 CFLAGS   += ${OPTFLAGS}
 
 BLAS_INCDIR      = -DMKL_ILP64 -I${MKLROOT}/include

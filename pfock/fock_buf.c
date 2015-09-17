@@ -15,9 +15,6 @@
 
 #if defined(USE_ELEMENTAL)
 #include <elem.h>
-ElGlobalArrays_i eliga;
-ElGlobalArrays_s elsga;
-ElGlobalArrays_d eldga;
 #else
 #include <ga.h>
 #include <macdecls.h>

@@ -5,7 +5,6 @@
 #include "CInt.h"
 #include "pfock.h"
 
-
 void compute_S(PFock_t pfock, BasisSet_t basis,
                int startshellrow, int endshellrow,
                int startshellcol, int endshellcol,

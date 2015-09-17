@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #if defined(USE_ELEMENTAL)
-#include "El.h"
+#include <El.h>
 #else
 #include <ga.h>
 #endif
@@ -35,7 +35,7 @@ int init_taskq(PFock_t pfock)
     }
 #if defined(USE_ELEMENTAL)
     int nga;
-    ElGlobalArraysCreate_d( *((ElGlobalArrays_d *)eldga), 0, 2, dims, "array taskid", &nga);
+    ElGlobalArraysCreate_d( eldga, 0, 2, dims, "array taskid", &nga);
     pfock->ga_taskid = nga;
 #else
     pfock->ga_taskid =
@@ -53,7 +53,7 @@ int init_taskq(PFock_t pfock)
 void clean_taskq(PFock_t pfock)
 {
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysDestroy_i( *((ElGlobalArrays_i *)eliga), pfock->ga_taskid );
+    ElGlobalArraysDestroy_i( eliga, pfock->ga_taskid );
 #else
     GA_Destroy(pfock->ga_taskid);
 #endif
@@ -64,7 +64,7 @@ void reset_taskq(PFock_t pfock)
 {
     int izero = 0;   
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysFill_i( *((ElGlobalArrays_i *)eliga), pfock->ga_taskid, &izero);
+    ElGlobalArraysFill_i( eliga, pfock->ga_taskid, &izero);
 #else   
     GA_Fill(pfock->ga_taskid, &izero);
 #endif
@@ -79,7 +79,7 @@ int taskq_next(PFock_t pfock, int myrow, int mycol, int ntasks)
     idx[1] = mycol;
     int nxtask;
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysReadIncrement_i( *((ElGlobalArrays_i *)eliga), pfock->ga_taskid, 
+    ElGlobalArraysReadIncrement_i( eliga, pfock->ga_taskid, 
                                    2, idx, ntasks, &nxtask);
 #else
     nxtask = NGA_Read_inc(pfock->ga_taskid, idx, ntasks);   

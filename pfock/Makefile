@@ -15,16 +15,14 @@ endif
 
 ifeq "${ELEMENTAL}" "1"
 CFLAGS += -DUSE_ELEMENTAL
-INC = -I./                  \
-      -I../include          \
+INC = -I.                   \
       -I${MPI_INCDIR}       \
       -I${SCALAPACK_INCDIR} \
       -I${BLAS_INCDIR}      \
       -I${EL_INCDIR}        \
       -I${ERD_INCDIR}
 else
-INC = -I./                  \
-      -I../include          \
+INC = -I.                   \
       -I${MPI_INCDIR}       \
       -I${SCALAPACK_INCDIR} \
       -I${BLAS_INCDIR}      \

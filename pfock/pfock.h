@@ -1,7 +1,6 @@
 #ifndef __PFOCK_H__
 #define __PFOCK_H__
 
-
 #include <omp.h>
 #include "CInt.h"
 
@@ -177,15 +176,15 @@ struct PFock {
     double volumega;
 };
 
+/* global El::GlobalArrays instances */
+#if defined (USE_ELEMENTAL)
+#include <El.h>
+extern ElGlobalArrays_i eliga;
+extern ElGlobalArrays_s elsga;
+extern ElGlobalArrays_d eldga;
+#endif
 
 typedef struct PFock *PFock_t;
-
-/* global El::GlobalArrays instances which would be typecasted accordingly */
-#if defined (USE_ELEMENTAL)
-    void *eliga;
-    void *elsga;
-    void *eldga;
-#endif 
 
 /** 
  * @enum   PFockStatus_t

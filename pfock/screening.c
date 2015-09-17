@@ -5,7 +5,7 @@
 #include <string.h>
 
 #if defined(USE_ELEMENTAL)
-#include "El.h"
+#include <El.h>
 #else
 #include <ga.h>
 #endif
@@ -47,7 +47,7 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
     block[1] = npcol;           
  #if defined(USE_ELEMENTAL)
     int g_a;
-    ElGlobalArraysCreate_d( *((ElGlobalArrays_d *)eldga), 0, 2, dims, "array Screening", &g_a);
+    ElGlobalArraysCreate_d( eldga, 0, 2, dims, "array Screening", &g_a);
     pfock->ga_screening = g_a;
 #else    
     pfock->ga_screening =
@@ -108,7 +108,7 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
     hi[1] = endN;
     int ld = endN - startN + 1;
     #if defined(USE_ELEMENTAL)
-    ElGlobalArraysPut_d( *((ElGlobalArrays_d *)eldga), pfock->ga_screening, lo, hi, 
+    ElGlobalArraysPut_d( eldga, pfock->ga_screening, lo, hi, 
                          sq_values, &ld );
     #else 
     NGA_Put(pfock->ga_screening, lo, hi, sq_values, &ld);
@@ -140,7 +140,7 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
         hi[1] = nshells - 1;
         ld = nshells;
         #if defined(USE_ELEMENTAL)
-        ElGlobalArraysGet_d( *((ElGlobalArrays_d *)eldga), pfock->ga_screening, lo, hi, 
+        ElGlobalArraysGet_d( eldga, pfock->ga_screening, lo, hi, 
                              sq_values, &ld );
         #else 
         NGA_Get(pfock->ga_screening, lo, hi, sq_values, &ld);
@@ -179,7 +179,7 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
         hi[1] = nshells - 1;
         ld = nshells;
         #if defined(USE_ELEMENTAL)
-        ElGlobalArraysGet_d( *((ElGlobalArrays_d *)eldga), pfock->ga_screening, lo, hi, 
+        ElGlobalArraysGet_d( eldga, pfock->ga_screening, lo, hi, 
                              sq_values, &ld );
         #else 
         NGA_Get(pfock->ga_screening, lo, hi, sq_values, &ld);
@@ -202,7 +202,7 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
     }
     PFOCK_FREE(sq_values);
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysDestroy_d( *((ElGlobalArrays_d *)eldga), pfock->ga_screening );
+    ElGlobalArraysDestroy_d( eldga, pfock->ga_screening );
 #else
     GA_Destroy(pfock->ga_screening);
 #endif

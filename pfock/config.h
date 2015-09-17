@@ -1,7 +1,6 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-
 #define GA_NB
 #define MIN(a, b)    ((a) < (b) ? (a) : (b))
 #define MAX(a, b)    ((a) > (b) ? (a) : (b))

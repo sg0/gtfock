@@ -184,7 +184,6 @@ static void init_oedmat(BasisSet_t basis, PFock_t pfock,
     }
 }
 
-
 /// main for SCF
 int main (int argc, char **argv)
 {

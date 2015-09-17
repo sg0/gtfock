@@ -14,7 +14,7 @@
 #include "fock_buf.h"
 
 #if defined(USE_ELEMENTAL)
-#include <El.h>
+#include <elem.h>
 ElGlobalArrays_i eliga;
 ElGlobalArrays_s elsga;
 ElGlobalArrays_d eldga;

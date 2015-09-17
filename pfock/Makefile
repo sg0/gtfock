@@ -30,10 +30,18 @@ INC = -I.                   \
       -I${ERD_INCDIR}
 endif
 
+ifeq "${ELEMENTAL}" "1"
 all: ${LIBPFOCK}
 	mkdir -p ../install
 	cp -r ${LIBPFOCK} ../install/
-	cp -r pfock.h ../install/        
+	cp -r pfock.h ../install/
+	cp -r elem.h ../install/
+else
+all: ${LIBPFOCK}
+	mkdir -p ../install
+	cp -r ${LIBPFOCK} ../install/
+	cp -r pfock.h ../install/
+endif
 
 ${LIBPFOCK}: ${OBJS}
 	${AR} $@ $^

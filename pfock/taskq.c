@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #if defined(USE_ELEMENTAL)
-#include <El.h>
+#include <elem.h>
 #else
 #include <ga.h>
 #endif

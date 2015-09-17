@@ -176,14 +176,6 @@ struct PFock {
     double volumega;
 };
 
-/* global El::GlobalArrays instances */
-#if defined (USE_ELEMENTAL)
-#include <El.h>
-extern ElGlobalArrays_i eliga;
-extern ElGlobalArrays_s elsga;
-extern ElGlobalArrays_d eldga;
-#endif
-
 typedef struct PFock *PFock_t;
 
 /** 

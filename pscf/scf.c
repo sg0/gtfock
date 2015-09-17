@@ -14,6 +14,9 @@
 #include "CInt.h"
 #include "purif.h"
 
+#if defined (USE_ELEMENTAL)
+#include <elem.h>
+#endif
 
 #define MAX_NUM_D    1
 #define NUM_D        1
@@ -190,7 +193,7 @@ int main (int argc, char **argv)
     // init MPI
     int myrank;
     int nprocs;
-#if defined (ELEMENTAL)
+#if defined (USE_ELEMENTAL)
     ElInitialize( &argc, &argv );
     ElMPICommRank( MPI_COMM_WORLD, &myrank );
     ElMPICommSize( MPI_COMM_WORLD, &nprocs );

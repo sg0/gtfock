@@ -12,12 +12,22 @@ ifeq "${SCF_OUT}" "1"
 CFLAGS += -D__SCF_OUT__
 endif
 
+ifeq "${ELEMENTAL}" "1"
+INC = -I./                  \
+      -I../install          \
+      -I${EL_INCDIR}        \
+      -I${ERD_INCDIR}       \
+      -I${MPI_INCDIR}       \
+      -I${SCALAPACK_INCDIR} \
+      -I${BLAS_INCDIR}
+else
 INC = -I./                  \
       -I../install          \
       -I${ERD_INCDIR}       \
       -I${MPI_INCDIR}       \
       -I${SCALAPACK_INCDIR} \
-      -I${BLAS_INCDIR} 
+      -I${BLAS_INCDIR}
+endif
 
 PFOCK_LIBS = ../install/libpfock.a
 

@@ -378,7 +378,7 @@ static PFockStatus_t create_GA (PFock_t pfock)
     sprintf(str, "D_0");
 #if defined(USE_ELEMENTAL)
     int g_a;
-    ElGlobalArraysCreate_d( *((ElGlobalArrays_d *)eldga), 0, 2, dims, str, &g_a);
+    ElGlobalArraysCreate_d( eldga, 0, 2, dims, str, &g_a);
     pfock->ga_D[0] = g_a;
 #else
     pfock->ga_D[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
@@ -392,7 +392,7 @@ static PFockStatus_t create_GA (PFock_t pfock)
         if (i != 0) {                
             sprintf(str, "D_%d", i);
 #if defined(USE_ELEMENTAL)
-            ElGlobalArraysDuplicate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D[0], str, &pfock->ga_D[i] );
+            ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], str, &pfock->ga_D[i] );
 #else
             pfock->ga_D[i] = GA_Duplicate(pfock->ga_D[0], str);
             if (0 == pfock->ga_D[i]) {
@@ -404,7 +404,7 @@ static PFockStatus_t create_GA (PFock_t pfock)
     
         sprintf(str, "F_%d", i);
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysDuplicate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D[0], str, &pfock->ga_F[i] );
+        ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], str, &pfock->ga_F[i] );
 #else
         pfock->ga_F[i] = GA_Duplicate(pfock->ga_D[0], str);
         if (0 == pfock->ga_F[i]) {
@@ -415,7 +415,7 @@ static PFockStatus_t create_GA (PFock_t pfock)
 
         sprintf (str, "K_%d", i);
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysDuplicate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D[0], str, &pfock->ga_K[i] );
+        ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], str, &pfock->ga_K[i] );
 #else
         pfock->ga_K[i] = GA_Duplicate(pfock->ga_D[0], str);
         if (0 == pfock->ga_K[i]) {
@@ -439,9 +439,9 @@ static void destroy_GA(PFock_t pfock)
 {
     for (int i = 0; i < pfock->max_numdmat2; i++) {
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysDestroy_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D[i] );
-        ElGlobalArraysDestroy_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F[i] );
-        ElGlobalArraysDestroy_d( *((ElGlobalArrays_d *)eldga), pfock->ga_K[i] );
+        ElGlobalArraysDestroy_d( eldga, pfock->ga_D[i] );
+        ElGlobalArraysDestroy_d( eldga, pfock->ga_F[i] );
+        ElGlobalArraysDestroy_d( eldga, pfock->ga_K[i] );
 #else
         GA_Destroy(pfock->ga_D[i]);        
         GA_Destroy(pfock->ga_F[i]);
@@ -449,7 +449,7 @@ static void destroy_GA(PFock_t pfock)
 #endif
     }
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysDestruct_d( *((ElGlobalArrays_d *)eldga) );
+    ElGlobalArraysDestruct_d( eldga );
     ElGlobalArraysDestruct_i( *((ElGlobalArrays_i *)eliga) );
 #endif
     PFOCK_FREE(pfock->ga_D);
@@ -490,7 +490,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     sprintf(str, "D1_0");
 #if defined(USE_ELEMENTAL)
     int nga2;
-    ElGlobalArraysCreate_d( *((ElGlobalArrays_d *)eldga), 0, 2, dims, str, &nga2);
+    ElGlobalArraysCreate_d( eldga, 0, 2, dims, str, &nga2);
     pfock->ga_D1[0] = nga2;
 #else
     pfock->ga_D1[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
@@ -499,7 +499,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
         if (i != 0) {
             sprintf(str, "D1_%d", i);
 #if defined(USE_ELEMENTAL)
-            ElGlobalArraysDuplicate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D1[0], str, &pfock->ga_D1[i] );
+            ElGlobalArraysDuplicate_d( eldga, pfock->ga_D1[0], str, &pfock->ga_D1[i] );
 #else
             pfock->ga_D1[i] = GA_Duplicate(pfock->ga_D1[0], str);
 #endif
@@ -529,7 +529,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     sprintf(str, "D2_0");
 #if defined(USE_ELEMENTAL)
     int nga;
-    ElGlobalArraysCreate_d( *((ElGlobalArrays_d *)eldga), 0, 2, dims, str, &nga);
+    ElGlobalArraysCreate_d( eldga, 0, 2, dims, str, &nga);
     pfock->ga_D2[0] = nga;
 #else
     pfock->ga_D2[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
@@ -538,7 +538,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
         if (i != 0) {
             sprintf(str, "D2_%d", i);
 #if defined(USE_ELEMENTAL)
-            ElGlobalArraysDuplicate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D2[0], str, &pfock->ga_D2[i] );
+            ElGlobalArraysDuplicate_d( eldga, pfock->ga_D2[0], str, &pfock->ga_D2[i] );
 #else
             pfock->ga_D2[i] = GA_Duplicate(pfock->ga_D2[0], str);
 #endif
@@ -569,7 +569,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     sprintf(str, "D3_0");
 #if defined(USE_ELEMENTAL)
     int nga1;
-    ElGlobalArraysCreate_d( *((ElGlobalArrays_d *)eldga), 0, 2, dims, str, &nga1);
+    ElGlobalArraysCreate_d( eldga, 0, 2, dims, str, &nga1);
     pfock->ga_D3[0] = nga1;
 #else
     pfock->ga_D3[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
@@ -578,7 +578,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
         if (i != 0) {
             sprintf(str, "D3_%d", i);
 #if defined(USE_ELEMENTAL)
-            ElGlobalArraysDuplicate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D3[0], str, &pfock->ga_D3[i] );
+            ElGlobalArraysDuplicate_d( eldga, pfock->ga_D3[0], str, &pfock->ga_D3[i] );
 #else
             pfock->ga_D3[i] = GA_Duplicate(pfock->ga_D3[0], str);
 #endif
@@ -605,19 +605,19 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     for (int i = 0; i < pfock->max_numdmat2; i++) {
         sprintf(str, "F1_%d", i);
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysDuplicate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D1[0], str, &pfock->ga_F1[i] );
+        ElGlobalArraysDuplicate_d( eldga, pfock->ga_D1[0], str, &pfock->ga_F1[i] );
 #else
         pfock->ga_F1[i] = GA_Duplicate(pfock->ga_D1[0], str);
 #endif
         sprintf(str, "F2_%d", i);
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysDuplicate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D3[0], str, &pfock->ga_F2[i] );
+        ElGlobalArraysDuplicate_d( eldga, pfock->ga_D3[0], str, &pfock->ga_F2[i] );
 #else
         pfock->ga_F2[i] = GA_Duplicate(pfock->ga_D2[0], str);
 #endif
         sprintf(str, "F3_%d", i);
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysDuplicate_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D3[0], str, &pfock->ga_F3[i] );
+        ElGlobalArraysDuplicate_d( eldga, pfock->ga_D3[0], str, &pfock->ga_F3[i] );
 #else
         pfock->ga_F3[i] = GA_Duplicate(pfock->ga_D3[0], str);
 #endif
@@ -825,12 +825,12 @@ static void destroy_buffers (PFock_t pfock)
 {
     for (int i = 0; i < pfock->max_numdmat2; i++) {
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysDestroy_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D1[i] );
-        ElGlobalArraysDestroy_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D2[i] );
-        ElGlobalArraysDestroy_d( *((ElGlobalArrays_d *)eldga), pfock->ga_D3[i] );
-        ElGlobalArraysDestroy_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F1[i] );
-        ElGlobalArraysDestroy_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F2[i] );
-        ElGlobalArraysDestroy_d( *((ElGlobalArrays_d *)eldga), pfock->ga_F3[i] );
+        ElGlobalArraysDestroy_d( eldga, pfock->ga_D1[i] );
+        ElGlobalArraysDestroy_d( eldga, pfock->ga_D2[i] );
+        ElGlobalArraysDestroy_d( eldga, pfock->ga_D3[i] );
+        ElGlobalArraysDestroy_d( eldga, pfock->ga_F1[i] );
+        ElGlobalArraysDestroy_d( eldga, pfock->ga_F2[i] );
+        ElGlobalArraysDestroy_d( eldga, pfock->ga_F3[i] );
 #else
         GA_Destroy(pfock->ga_D1[i]);
         GA_Destroy(pfock->ga_D2[i]);
@@ -979,6 +979,7 @@ PFockStatus_t PFock_create(BasisSet_t basis, int nprow, int npcol, int ntasks,
           
     // init global arrays
     init_GA(pfock->nbf, nprow, npcol, pfock->max_numdmat2, 0, 0);
+    printf ("GA initialized...\n");
         
     // set tasks
     int minnshells = (nprow > npcol ? nprow : npcol);
@@ -1050,6 +1051,9 @@ PFockStatus_t PFock_create(BasisSet_t basis, int nprow, int npcol, int ntasks,
         return ret;
     }
 
+    if (myrank == 0) {
+        PFOCK_INFO("creating pfock GAs ...\n");
+    }
     // init global arrays
     if ((ret = create_GA(pfock)) != PFOCK_STATUS_SUCCESS) {
         return ret;

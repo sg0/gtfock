@@ -35,7 +35,8 @@ int init_taskq(PFock_t pfock)
     }
 #if defined(USE_ELEMENTAL)
     int nga;
-    ElGlobalArraysCreate_d( eldga, 0, 2, dims, "array taskid", &nga);
+    printf ("init_taskq: Creating %d (h) x %d (w) GA...\n", dims[0], dims[1]);
+    ElGlobalArraysCreate_d( eldga, 0, 2, dims, "array taskid", &nga );
     pfock->ga_taskid = nga;
 #else
     pfock->ga_taskid =

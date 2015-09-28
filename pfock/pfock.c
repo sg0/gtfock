@@ -1419,7 +1419,7 @@ PFockStatus_t PFock_getLocalMatPtr(PFock_t pfock,
 
 #if defined(USE_ELEMENTAL)
     ElGlobalArraysDistribution_d( eldga, ga[index], myrank, lo, hi);
-    ElGlobalArraysAccess_d( eldga, ga[index], lo, hi, *mat, stride );
+    ElGlobalArraysAccess_d( eldga, ga[index], lo, hi, (void **)mat, stride );
 #else
     // this cannot be mapped to Elemental directly
     NGA_Distribution (ga[index], myrank, lo, hi);
@@ -1548,19 +1548,19 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
         int ldD;
         hi[1] = sizeX1 - 1;
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysAccess_d( eldga, pfock->ga_D1[i], lo, hi, D1[i], &ldD );
+        ElGlobalArraysAccess_d( eldga, pfock->ga_D1[i], lo, hi, (void **)&D1[i], &ldD );
 #else
         NGA_Access(pfock->ga_D1[i], lo, hi, &D1[i], &ldD);
 #endif
         hi[1] = sizeX2 - 1;
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysAccess_d( eldga, pfock->ga_D2[i], lo, hi, D2[i], &ldD );
+        ElGlobalArraysAccess_d( eldga, pfock->ga_D2[i], lo, hi, (void **)&D2[i], &ldD );
 #else
         NGA_Access(pfock->ga_D2[i], lo, hi, &D2[i], &ldD);
 #endif
         hi[1] = sizeX3 - 1;
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysAccess_d( eldga, pfock->ga_D3[i], lo, hi, D3[i], &ldD );
+        ElGlobalArraysAccess_d( eldga, pfock->ga_D3[i], lo, hi, (void **)&D3[i], &ldD );
 #else
         NGA_Access(pfock->ga_D3[i], lo, hi, &D3[i], &ldD);
 #endif
@@ -2124,7 +2124,7 @@ PFockStatus_t PFock_createCoreHMat(PFock_t pfock, BasisSet_t basis)
 #endif
 #if defined(USE_ELEMENTAL)
     ElGlobalArraysDistribution_d( eldga, pfock->ga_H, myrank, lo, hi);
-    ElGlobalArraysAccess_d( eldga, pfock->ga_H, lo, hi, mat, &stride );
+    ElGlobalArraysAccess_d( eldga, pfock->ga_H, lo, hi, (void **)&mat, &stride );
 #else
     NGA_Distribution(pfock->ga_H, myrank, lo, hi);
     NGA_Access(pfock->ga_H, lo, hi, &mat, &stride);   
@@ -2189,7 +2189,7 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
     ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], "overlap mat", &pfock->ga_S );
     ElGlobalArraysFill_d( eldga, pfock->ga_S, &dzero);
     ElGlobalArraysDistribution_d( eldga, pfock->ga_S, myrank, lo, hi);
-    ElGlobalArraysAccess_d( eldga, pfock->ga_S, lo, hi, mat, &stride );
+    ElGlobalArraysAccess_d( eldga, pfock->ga_S, lo, hi, (void **)&mat, &stride );
 #else
     pfock->ga_S = GA_Duplicate(pfock->ga_D[0], "overlap mat");
     if (0 == pfock->ga_S) {
@@ -2249,8 +2249,8 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
     int ld;
 
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysAccess_d( eldga, ga_tmp, lo, hi, blocktmp, &ld );
-    ElGlobalArraysAccess_d( eldga, ga_tmp2, lo, hi, blockS, &ld );
+    ElGlobalArraysAccess_d( eldga, ga_tmp, lo, hi, (void **)&blocktmp, &ld );
+    ElGlobalArraysAccess_d( eldga, ga_tmp2, lo, hi, (void **)&blockS, &ld );
 #else
     NGA_Access(ga_tmp, lo, hi, &blocktmp, &ld);
     NGA_Access(ga_tmp2, lo, hi, &blockS, &ld);

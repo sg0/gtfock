@@ -14,7 +14,7 @@ SCF_OUT     = 0
 #OPTFLAGS = -offload-option,mic,compiler,"-z defs -no-opt-prefetch"
 OPTFLAGS  = -offload=none
 OPTFLAGS += -m64 -xHost
-CFLAGS    = -O3 -Wall -openmp -std=c99 -fasm-blocks
+CFLAGS    = -O3 -Wall -g -openmp -std=c99 -fasm-blocks
 CFLAGS   += -Wunknown-pragmas -Wunused-variable
 CFLAGS   += ${OPTFLAGS}
 

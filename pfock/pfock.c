@@ -378,7 +378,7 @@ static PFockStatus_t create_GA (PFock_t pfock)
     sprintf(str, "D_0");
 #if defined(USE_ELEMENTAL)
     int g_a;
-    ElGlobalArraysCreate_d( eldga, 0, 2, dims, str, &g_a);
+    ElGlobalArraysCreate_d( eldga, 2, dims, str, &g_a);
     pfock->ga_D[0] = g_a;
 #else
     pfock->ga_D[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
@@ -490,7 +490,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     sprintf(str, "D1_0");
 #if defined(USE_ELEMENTAL)
     int nga2;
-    ElGlobalArraysCreate_d( eldga, 0, 2, dims, str, &nga2);
+    ElGlobalArraysCreate_d( eldga, 2, dims, str, &nga2);
     pfock->ga_D1[0] = nga2;
 #else
     pfock->ga_D1[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
@@ -529,7 +529,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     sprintf(str, "D2_0");
 #if defined(USE_ELEMENTAL)
     int nga;
-    ElGlobalArraysCreate_d( eldga, 0, 2, dims, str, &nga);
+    ElGlobalArraysCreate_d( eldga, 2, dims, str, &nga);
     pfock->ga_D2[0] = nga;
 #else
     pfock->ga_D2[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
@@ -569,7 +569,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     sprintf(str, "D3_0");
 #if defined(USE_ELEMENTAL)
     int nga1;
-    ElGlobalArraysCreate_d( eldga, 0, 2, dims, str, &nga1);
+    ElGlobalArraysCreate_d( eldga, 2, dims, str, &nga1);
     pfock->ga_D3[0] = nga1;
     printf ("%s created ...\n", str);
 #else

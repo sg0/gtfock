@@ -45,9 +45,9 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
     dims[1] = nshells;
     block[0] = nprow;
     block[1] = npcol;           
- #if defined(USE_ELEMENTAL)
+#if defined(USE_ELEMENTAL)
     int g_a;
-    ElGlobalArraysCreate_d( eldga, 0, 2, dims, "array Screening", &g_a);
+    ElGlobalArraysCreate_d( eldga, 2, dims, "array Screening", &g_a);
     pfock->ga_screening = g_a;
 #else    
     pfock->ga_screening =

@@ -49,6 +49,7 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
     int g_a;
     ElGlobalArraysCreate_d( eldga, 2, dims, "array Screening", &g_a);
     pfock->ga_screening = g_a;
+    PFOCK_INFO("Created screening GA ...\n");
 #else    
     pfock->ga_screening =
         NGA_Create_irreg(C_DBL, 2, dims, "array Screening", block, map);
@@ -107,12 +108,13 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
     lo[1] = startN;
     hi[1] = endN;
     int ld = endN - startN + 1;
-    #if defined(USE_ELEMENTAL)
+#if defined(USE_ELEMENTAL)
     ElGlobalArraysPut_d( eldga, pfock->ga_screening, lo, hi, 
                          sq_values, &ld );
-    #else 
+    ElGlobalArraysSync_d( eldga );
+#else 
     NGA_Put(pfock->ga_screening, lo, hi, sq_values, &ld);
-    #endif
+#endif
     // max value
     MPI_Allreduce(&maxtmp, &(pfock->maxvalue), 1,
                   MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
@@ -139,12 +141,12 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
         lo[1] = 0;
         hi[1] = nshells - 1;
         ld = nshells;
-        #if defined(USE_ELEMENTAL)
+#if defined(USE_ELEMENTAL)
         ElGlobalArraysGet_d( eldga, pfock->ga_screening, lo, hi, 
                              sq_values, &ld );
-        #else 
+#else 
         NGA_Get(pfock->ga_screening, lo, hi, sq_values, &ld);
-        #endif
+#endif
         for (int N = 0; N < nshells; N++) {
             double maxvalue = sq_values[N];
             if (maxvalue > eta) {

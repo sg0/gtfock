@@ -34,6 +34,7 @@ PFOCK_LIBS = ../install/libpfock.a
 ifeq "${ELEMENTAL}" "1"
 CFLAGS += -DUSE_ELEMENTAL 
 LDFLAGS = -L${MPI_LIBDIR}       \
+          -L${MPI_LIBSUBDIR}    \
           -L${SCALAPACK_LIBDIR} \
           -L${EL_LIBDIR}        \
           -L${BLAS_LIBDIR}      \

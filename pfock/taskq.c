@@ -81,7 +81,7 @@ int taskq_next(PFock_t pfock, int myrow, int mycol, int ntasks)
     int nxtask;
 #if defined(USE_ELEMENTAL)
     ElGlobalArraysReadIncrement_i( eliga, pfock->ga_taskid, 
-                                   2, idx, ntasks, &nxtask);
+                                   idx, ntasks, &nxtask);
 #else
     nxtask = NGA_Read_inc(pfock->ga_taskid, idx, ntasks);   
 #endif

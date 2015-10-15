@@ -2,8 +2,8 @@ CC  = icc
 CXX = icpc
 FC  = ifort
 AR  = xiar rcs
-MPICC  = mpicc
-MPICXX  = mpicxx
+MPICC  = /home/sghosh/builds/mvapich2-cspr/bin/mpicc
+MPICXX  = /home/sghosh/builds/mvapich2-cspr/bin/mpicxx
 
 ELEMENTAL   = 1
 DYNAMIC     = 1
@@ -26,8 +26,8 @@ SCALAPACK_INCDIR = -DMKL_ILP64 -I${MKLROOT}/include
 SCALAPACK_LIBDIR = ${MKLROOT}/lib/intel64
 SCALAPACK_LIBS   = -lmkl_scalapack_lp64 -lmkl_blacs_intelmpi_lp64
 
-MPI_INCDIR =
-MPI_LIBDIR =
+MPI_INCDIR = /home/sghosh/builds/mvapich2-cspr/include 
+MPI_LIBDIR = /home/sghosh/builds/mvapich2-cspr/lib
 MPI_LIBS = -lmpich -lopa -lmpl
 
 EL_TOP = /home/sghosh/builds/Elemental-rma

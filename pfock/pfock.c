@@ -461,12 +461,17 @@ static void destroy_GA(PFock_t pfock)
 static PFockStatus_t create_FD_GArrays (PFock_t pfock)
 {
     int dims[2];
+#if defined(USE_ELEMENTAL)
+#else
     int block[2];
+#endif
     char str[8];
     
     int sizeD1 = pfock->sizeX1;
     int sizeD2 = pfock->sizeX2;
     int sizeD3 = pfock->sizeX3;  
+#if defined(USE_ELEMENTAL)
+#else
     int *map = (int *)PFOCK_MALLOC(sizeof(int) * (1 + pfock->nprocs));
     if (NULL == map) {
         PFOCK_PRINTF(1, "memory allocation failed\n");
@@ -480,6 +485,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
         map[i] = i;
     }
     map[pfock->nprocs] = 0;
+#endif
     dims[0] = pfock->nprocs;
     dims[1] = sizeD1;
     pfock->ga_D1 = (int *)PFOCK_MALLOC(sizeof(int) * pfock->max_numdmat2);
@@ -489,9 +495,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     }
     sprintf(str, "D1_0");
 #if defined(USE_ELEMENTAL)
-    int nga2;
-    ElGlobalArraysCreate_d( eldga, 2, dims, str, &nga2);
-    pfock->ga_D1[0] = nga2;
+    ElGlobalArraysCreate_d( eldga, 2, dims, str, &pfock->ga_D1[0] );
 #else
     pfock->ga_D1[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
 #endif
@@ -499,7 +503,9 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
         if (i != 0) {
             sprintf(str, "D1_%d", i);
 #if defined(USE_ELEMENTAL)
-            ElGlobalArraysDuplicate_d( eldga, pfock->ga_D1[0], str, &pfock->ga_D1[i] );
+            int nga_i = -1;
+            ElGlobalArraysDuplicate_d( eldga, pfock->ga_D1[0], str, &nga_i );
+            pfock->ga_D1[i] = nga_i;
 #else
             pfock->ga_D1[i] = GA_Duplicate(pfock->ga_D1[0], str);
 #endif
@@ -513,12 +519,15 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
 #endif
     }
         
+#if defined(USE_ELEMENTAL)
+#else
     // for D2
     for (int i = 0; i < pfock->nprocs; i++)
     {
         map[i] = i;
     }
     map[pfock->nprocs] = 0;
+#endif
     dims[0] = pfock->nprocs;
     dims[1] = sizeD2;
     pfock->ga_D2 = (int *)PFOCK_MALLOC(sizeof(int) * pfock->max_numdmat2);
@@ -538,12 +547,13 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
         if (i != 0) {
             sprintf(str, "D2_%d", i);
 #if defined(USE_ELEMENTAL)
-            ElGlobalArraysDuplicate_d( eldga, pfock->ga_D2[0], str, &pfock->ga_D2[i] );
+            int nga_i;
+            ElGlobalArraysDuplicate_d( eldga, pfock->ga_D2[0], str, &nga_i );
+            pfock->ga_D2[i] = nga_i;
 #else
             pfock->ga_D2[i] = GA_Duplicate(pfock->ga_D2[0], str);
 #endif
         }
-
 #if defined(USE_ELEMENTAL)
 #else
         if (pfock->ga_D2[i] == 0) {
@@ -552,13 +562,16 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
         }
 #endif
     }
-    
+ 
+#if defined(USE_ELEMENTAL)
+#else   
     // for D3
     for (int i = 0; i < pfock->nprocs; i++)
     {
         map[i] = i;
     }
     map[pfock->nprocs] = 0;
+#endif
     dims[0] = pfock->nprocs;
     dims[1] = sizeD3;
     pfock->ga_D3 = (int *)PFOCK_MALLOC(sizeof(int) * pfock->max_numdmat2);
@@ -568,9 +581,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     }
     sprintf(str, "D3_0");
 #if defined(USE_ELEMENTAL)
-    int nga1;
-    ElGlobalArraysCreate_d( eldga, 2, dims, str, &nga1);
-    pfock->ga_D3[0] = nga1;
+    ElGlobalArraysCreate_d( eldga, 2, dims, str, &pfock->ga_D3[0] );
     printf ("%s created ...\n", str);
 #else
     pfock->ga_D3[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
@@ -604,6 +615,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
         PFOCK_PRINTF(1, "memory allocation failed\n");
         return PFOCK_STATUS_ALLOC_FAILED;
     }
+
     for (int i = 0; i < pfock->max_numdmat2; i++) {
         sprintf(str, "F1_%d", i);
 #if defined(USE_ELEMENTAL)
@@ -626,6 +638,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
 #else
         pfock->ga_F3[i] = GA_Duplicate(pfock->ga_D3[0], str);
 #endif
+
 #if defined(USE_ELEMENTAL)
 #else
         if (pfock->ga_F1[i] == 0 ||
@@ -637,7 +650,10 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
 #endif
     }
     
+#if defined(USE_ELEMENTAL)
+#else
     PFOCK_FREE(map);
+#endif
 
     return PFOCK_STATUS_SUCCESS; 
 }

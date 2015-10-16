@@ -51,11 +51,11 @@ void load_local_bufD(PFock_t pfock)
 	lo[0] = 0;
 	hi[0] = 0;
 	lo[1] = 0;
-        ElGlobalArraysAccess_d( eldga, pfock->ga_D1[i], lo, hi, (void **)&D1, &ldD );
+        ElGlobalArraysAccess_d( eldga, pfock->ga_D1[i], lo, hi, &D1, &ldD );
         hi[1] = pfock->sizeX2 - 1;
-        ElGlobalArraysAccess_d( eldga, pfock->ga_D2[i], lo, hi, (void **)&D2, &ldD );
+        ElGlobalArraysAccess_d( eldga, pfock->ga_D2[i], lo, hi, &D2, &ldD );
         hi[1] = pfock->sizeX3 - 1;
-        ElGlobalArraysAccess_d( eldga, pfock->ga_D3[i], lo, hi, (void **)&D3, &ldD );
+        ElGlobalArraysAccess_d( eldga, pfock->ga_D3[i], lo, hi, &D3, &ldD );
 #else
         NGA_Access(pfock->ga_D1[i], lo, hi, &D1, &ldD);
         hi[1] = pfock->sizeX2 - 1;
@@ -196,9 +196,9 @@ void store_local_bufF(PFock_t pfock)
         lo[0] = 0; 
         lo[1] = 0;
         hi[0] = 0;
-        ElGlobalArraysAccess_d( eldga, pfock->ga_F1[i], lo, hi, (void **)&F1, &ldF );
-        ElGlobalArraysAccess_d( eldga, pfock->ga_F2[i], lo, hi, (void **)&F2, &ldF );
-        ElGlobalArraysAccess_d( eldga, pfock->ga_F3[i], lo, hi, (void **)&F3, &ldF );
+        ElGlobalArraysAccess_d( eldga, pfock->ga_F1[i], lo, hi, &F1, &ldF );
+        ElGlobalArraysAccess_d( eldga, pfock->ga_F2[i], lo, hi, &F2, &ldF );
+        ElGlobalArraysAccess_d( eldga, pfock->ga_F3[i], lo, hi, &F3, &ldF );
 #else
         NGA_Access(pfock->ga_F1[i], lo, hi, &F1, &ldF);
         lo[1] = 0;

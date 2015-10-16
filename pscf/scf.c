@@ -156,6 +156,9 @@ static void init_oedmat(BasisSet_t basis, PFock_t pfock,
     }
     t1 = MPI_Wtime();
     PFock_createOvlMat(pfock, basis);
+    if (myrank == 0)
+	printf ("Creating OvlMat\n");
+
     if (purif->runpurif == 1) {
         PFock_getOvlMat(pfock, srow_purif, erow_purif, scol_purif, ecol_purif,
                         ldx, purif->S_block);

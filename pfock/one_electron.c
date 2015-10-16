@@ -70,7 +70,7 @@ void compute_S(PFock_t pfock, BasisSet_t basis,
     }
 
     for (int i = 0; i < nthreads; i++) {
-        CInt_destroyOED(oed[i]);
+	CInt_destroyOED(oed[i]);
     }
     free(oed);
 }
@@ -87,6 +87,7 @@ void compute_H(PFock_t pfock, BasisSet_t basis,
     for (int i = 0; i < nthreads; i++) {
         CInt_createOED(basis, &(oed[i]));
     }
+                    
     
     int start_row_id = pfock->f_startind[startshellrow];
     int start_col_id = pfock->f_startind[startshellcol];

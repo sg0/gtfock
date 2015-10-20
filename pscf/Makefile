@@ -49,6 +49,7 @@ LIBS = ${MPI_LIBS}       \
 else
 LDFLAGS = -L${MPI_LIBDIR}       \
           -L${GA_LIBDIR}        \
+          -L${ARMCI_LIBDIR}     \
           -L${SCALAPACK_LIBDIR} \
           -L${BLAS_LIBDIR}      \
           -L${ERD_LIBDIR}
@@ -58,6 +59,7 @@ LIBS = ${MPI_LIBS}       \
        ${PFOCK_LIBS}     \
        ${ERD_LIBS}       \
        ${GA_LIBS}        \
+       ${ARMCI_LIBS}     \
        -lifcore -limf
 endif
 

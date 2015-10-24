@@ -367,8 +367,14 @@ int main (int argc, char **argv)
         fock_build(pfock, basis, purif->runpurif,
                    rowstart, rowend, colstart, colend,
                    purif->ldx, purif->D_block, purif->F_block);
+        if (myrank == 0) {
+            printf("After fock build \n");
+        }
         // compute energy
         double energy = compute_energy(purif, purif->F_block, purif->D_block);
+        if (myrank == 0) {
+            printf("After computing energy \n");
+        }
         t2 = MPI_Wtime();
         if (myrank == 0) {
             printf("    fock build takes %.3f secs\n", t2 - t1);

@@ -1472,7 +1472,7 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
 {
 #ifdef GA_NB
 #if defined(USE_ELEMENTAL)
-    typedef int ga_nbhdl_t;
+    typedef ElInt ga_nbhdl_t;
 #endif
     ga_nbhdl_t nbhdlF1;
     ga_nbhdl_t nbhdlF2;
@@ -2217,8 +2217,6 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
     NGA_Distribution(pfock->ga_S, myrank, lo, hi);
     NGA_Access(pfock->ga_S, lo, hi, &mat, &stride);    
 #endif
-    if (myrank == 0)
-	printf ("Before compute_S\n");
     compute_S(pfock, basis, pfock->sshell_row, pfock->eshell_row,
               pfock->sshell_col, pfock->eshell_col, stride, mat);
 #if defined(USE_ELEMENTAL)

@@ -41,9 +41,7 @@ int init_taskq(PFock_t pfock)
 #endif
 #if defined(USE_ELEMENTAL)
     printf ("init_taskq: Creating %d (h) x %d (w) GA...\n", dims[0], dims[1]);
-    //ElGlobalArraysCreate_i( eliga, 2, dims, "array taskid", &pfock->ga_taskid );
-    ElInt length = dims[0] * dims[1]; // ReadInc only supports 1-D GA
-    ElGlobalArraysCreate_i( eliga, 1, &length, "array taskid", &pfock->ga_taskid );
+    ElGlobalArraysCreate_i( eliga, 2, dims, "array taskid", &pfock->ga_taskid );
 #else
     pfock->ga_taskid =
         NGA_Create_irreg(C_INT, 2, dims, "array taskid", block, map);
@@ -86,11 +84,8 @@ int taskq_next(PFock_t pfock, int myrow, int mycol, int ntasks)
     idx[1] = mycol;
     int nxtask;
 #if defined(USE_ELEMENTAL)
-    ElInt length, ndim;
-    ElGlobalArraysInquire_i( eliga, pfock->ga_taskid, &ndim, &length );
-    ElInt pos = idx[0] * length + idx[1];	
     ElGlobalArraysReadIncrement_i( eliga, pfock->ga_taskid, 
-                                   &pos, ntasks, &nxtask);
+                                   idx, ntasks, &nxtask);
 #else
     nxtask = NGA_Read_inc(pfock->ga_taskid, idx, ntasks);   
 #endif

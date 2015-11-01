@@ -8,9 +8,8 @@
 #include <elem.h>
 #else
 #include <ga.h>
-#endif
-
 #include <mpi.h>
+#endif
 
 #include "CInt.h"
 #include "config.h"
@@ -30,9 +29,11 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
     int nshells = pfock->nshells;
     
     // create global arrays for screening 
+    int dims[2];
+#if defined(USE_ELEMENTAL)
+#else
     int nprow = pfock->nprow;
     int npcol = pfock->npcol;
-    int dims[2];
     int block[2];
     int map[nprow + npcol];
     for (int i = 0; i < nprow; i++) {
@@ -41,14 +42,13 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
     for (int i = 0; i < npcol; i++) {
         map[i + nprow] = pfock->colptr_sh[i];
     }
-    dims[0] = nshells;
-    dims[1] = nshells;
     block[0] = nprow;
     block[1] = npcol;           
+#endif
+    dims[0] = nshells;
+    dims[1] = nshells;
 #if defined(USE_ELEMENTAL)
-    int g_a;
-    ElGlobalArraysCreate_d( eldga, 2, dims, "array Screening", &g_a);
-    pfock->ga_screening = g_a;
+    ElGlobalArraysCreate_d( eldga, 2, dims, "array Screening", &pfock->ga_screening);
     PFOCK_INFO("Created screening GA ...\n");
 #else    
     pfock->ga_screening =

@@ -337,10 +337,10 @@ static PFockStatus_t create_GA (PFock_t pfock)
     int nbf;
     int nprow;
     int npcol;
-    int i;
     int dims[2];
 #if defined(USE_ELEMENTAL)
 #else
+    int i;
     int *map;
     int block[2];
 #endif
@@ -383,9 +383,7 @@ static PFockStatus_t create_GA (PFock_t pfock)
 
     sprintf(str, "D_0");
 #if defined(USE_ELEMENTAL)
-    int g_a;
-    ElGlobalArraysCreate_d( eldga, 2, dims, str, &g_a);
-    pfock->ga_D[0] = g_a;
+    ElGlobalArraysCreate_d( eldga, 2, dims, str, &pfock->ga_D[0]);
 #else
     pfock->ga_D[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
     if (0 == pfock->ga_D[0]) {
@@ -1569,7 +1567,6 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
 #if defined(USE_ELEMENTAL)
 	lo[0] = 0;
 	hi[0] = 0;
-	lo[1] = 0;
 	ElGlobalArraysAccess_d( eldga, pfock->ga_D1[i], lo, hi, &D1[i], &ldD );
 #else
         NGA_Access(pfock->ga_D1[i], lo, hi, &D1[i], &ldD);
@@ -1650,7 +1647,6 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
 #if defined(USE_ELEMENTAL)
 	lo[0] = 0;
 	hi[0] = 0;
-	lo[1] = 0;    
 	ElGlobalArraysNBAccumulate_d( eldga, pfock->ga_F1[i], lo, hi, 
                                &F1[i * sizeX1], &sizeX1, &done, &nbhdlF1 );
         hi[1] = sizeX2 - 1;
@@ -1925,7 +1921,9 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
                 hi[0] = myrank;
                 for (int i = 0; i < pfock->num_dmat2; i++) {
                 #ifdef GA_NB   
-                 #if defined(USE_ELEMENTAL)
+                #if defined(USE_ELEMENTAL)
+		    lo[0] = 0;
+		    hi[0] = 0;
                     ElGlobalArraysNBAccumulate_d( eldga, pfock->ga_F1[i], lo, hi, 
                                            &F1[i * sizeX1], &sizeX1, &done, &nbhdlF1 );
                 #else
@@ -1975,6 +1973,8 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
                 for (int i = 0; i < pfock->num_dmat2; i++) {
                 #ifdef GA_NB
                 #if defined(USE_ELEMENTAL)
+		    lo[0] = 0;
+		    hi[0] = 0;
                     ElGlobalArraysNBAccumulate_d( eldga, pfock->ga_F2[i], lo, hi, 
                                            &F2[i * sizeX2], &sizeX2, &done, &nbhdlF2 );
                 #else

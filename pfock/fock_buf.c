@@ -31,9 +31,14 @@ void load_local_bufD(PFock_t pfock)
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
     int lo[2];
     int hi[2];
-    int ldD;    
+    int ldD;   
+#if defined(USE_ELEMENTAL)
+    lo[0] = 0;
+    hi[0] = 0;
+#else
     lo[0] = myrank;
     hi[0] = myrank;
+#endif
     lo[1] = 0;
     for (int i = 0; i < pfock->num_dmat2; i++) {
     #ifdef GA_NB
@@ -48,9 +53,6 @@ void load_local_bufD(PFock_t pfock)
         double *D3;
         hi[1] = pfock->sizeX1 - 1;
 #if defined(USE_ELEMENTAL)
-	lo[0] = 0;
-	hi[0] = 0;
-	lo[1] = 0;
         ElGlobalArraysAccess_d( eldga, pfock->ga_D1[i], lo, hi, &D1, &ldD );
         hi[1] = pfock->sizeX2 - 1;
         ElGlobalArraysAccess_d( eldga, pfock->ga_D2[i], lo, hi, &D2, &ldD );
@@ -177,8 +179,13 @@ void store_local_bufF(PFock_t pfock)
 #else
     int *ga_K = pfock->ga_K;
 #endif
+#if defined(USE_ELEMENTAL)
+    lo[0] = 0;
+    hi[0] = 0;
+#else
     lo[0] = myrank;
     hi[0] = myrank;
+#endif
     lo[1] = 0;
     for (int i = 0; i < pfock->num_dmat2; i++) {
     #ifdef GA_NB    
@@ -193,11 +200,12 @@ void store_local_bufF(PFock_t pfock)
         double *F3;
         hi[1] = pfock->sizeX1 - 1;
 #if defined(USE_ELEMENTAL)
-        lo[0] = 0; 
-        lo[1] = 0;
-        hi[0] = 0;
         ElGlobalArraysAccess_d( eldga, pfock->ga_F1[i], lo, hi, &F1, &ldF );
+        lo[1] = 0;
+        hi[1] = pfock->sizeX2 - 1;
         ElGlobalArraysAccess_d( eldga, pfock->ga_F2[i], lo, hi, &F2, &ldF );
+        lo[1] = 0;
+        hi[1] = pfock->sizeX3 - 1;
         ElGlobalArraysAccess_d( eldga, pfock->ga_F3[i], lo, hi, &F3, &ldF );
 #else
         NGA_Access(pfock->ga_F1[i], lo, hi, &F1, &ldF);

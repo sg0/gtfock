@@ -354,6 +354,7 @@ int main (int argc, char **argv)
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
+
     // main loop
     double t1, t2, t3, t4;
     for (int iter = 0; iter < niters; iter++) {
@@ -370,8 +371,11 @@ int main (int argc, char **argv)
         if (myrank == 0) {
             printf("After fock build \n");
         }
+	printf ("purif->D_block[0] = %f, purif->F_block[0] = %f\n", purif->D_block[0], purif->F_block[0]);
+
         // compute energy
         double energy = compute_energy(purif, purif->F_block, purif->D_block);
+
         if (myrank == 0) {
             printf("After computing energy \n");
         }

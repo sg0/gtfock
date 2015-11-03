@@ -88,7 +88,6 @@ void compute_H(PFock_t pfock, BasisSet_t basis,
         CInt_createOED(basis, &(oed[i]));
     }
                     
-    
     int start_row_id = pfock->f_startind[startshellrow];
     int start_col_id = pfock->f_startind[startshellcol];
     #pragma omp parallel

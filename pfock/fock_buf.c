@@ -36,7 +36,7 @@ void load_local_bufD(PFock_t pfock)
     for (int i = 0; i < pfock->num_dmat2; i++) {
     #ifdef GA_NB
     #if defined(USE_ELEMENTAL)
-        typedef int ga_nbhdl_t;
+        typedef ElInt ga_nbhdl_t;
     #endif
         ga_nbhdl_t nbnb;
     #endif
@@ -104,7 +104,7 @@ void load_local_bufD(PFock_t pfock)
         #endif
         #else
         #if defined(USE_ELEMENTAL)
-            ElGlobalArraysNBGet_d( eldga, pfock->ga_D[i], lo, hi, &(D2[poscol]), &ldD2 );
+            ElGlobalArraysGet_d( eldga, pfock->ga_D[i], lo, hi, &(D2[poscol]), &ldD2 );
         #else   
             NGA_Get(pfock->ga_D[i], lo, hi, &(D2[poscol]), &ldD2);
         #endif
@@ -235,7 +235,7 @@ void store_local_bufF(PFock_t pfock)
         #endif 
         #else
         #if defined(USE_ELEMENTAL)
-            ElGlobalArraysAcc_d( eldga, ga_J[i], lo, hi, 
+            ElGlobalArraysAccumulate_d( eldga, ga_J[i], lo, hi, 
                                  &(F1[posrow]), &ldF1, &done );
         #else
             NGA_Acc(ga_J[i], lo, hi, &(F1[posrow]), &ldF1, &done);
@@ -260,7 +260,7 @@ void store_local_bufF(PFock_t pfock)
         #endif
         #else
         #if defined(USE_ELEMENTAL)
-            ElGlobalArraysAcc_d( eldga, ga_J[i], lo, hi, 
+            ElGlobalArraysAccumulate_d( eldga, ga_J[i], lo, hi, 
                               &(F2[poscol]), &ldF2, &done );
         #else
             NGA_Acc(ga_J[i], lo, hi, &(F2[poscol]), &ldF2, &done);
@@ -287,7 +287,7 @@ void store_local_bufF(PFock_t pfock)
             #endif
             #else
             #if defined(USE_ELEMENTAL)
-                ElGlobalArraysAcc_d( eldga, ga_K[i], lo, hi, 
+                ElGlobalArraysAccumulate_d( eldga, ga_K[i], lo, hi, 
                               &(F3[posrow * ldF3 + poscol]), &ldF3, &done );
             #else
                 NGA_Acc(ga_K[i], lo, hi, 

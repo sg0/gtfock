@@ -185,7 +185,7 @@ void my_peig(int ga_A, int ga_B, int n, int nprow, int npcol, double *eval)
        #endif
 #else
        #if defined(USE_ELEMENTAL)
-            ElGlobalArraysNBGet_d( eldga, ga_A, lo, hi, 
+            ElGlobalArraysGet_d( eldga, ga_A, lo, hi, 
                                    &(Z[(i - 1) * ncols + j - 1]), &ld );
        #else   
             NGA_Get(ga_A, lo, hi, &(Z[(i - 1) * ncols + j - 1]), &ld);
@@ -273,7 +273,7 @@ void my_peig(int ga_A, int ga_B, int n, int nprow, int npcol, double *eval)
        #endif
 #else
        #if defined(USE_ELEMENTAL)
-            ElGlobalArraysNBPut_d( eldga, ga_B, lo, hi, 
+            ElGlobalArraysPut_d( eldga, ga_B, lo, hi, 
                                    &(A[(i - 1) * ncols + j - 1]), &ld );
        #else 
             NGA_Put(ga_B, lo, hi, &(A[(i - 1) * ncols + j - 1]), &ld);

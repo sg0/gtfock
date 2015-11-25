@@ -30,8 +30,6 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
     
     // create global arrays for screening 
     int dims[2];
-#if defined(USE_ELEMENTAL)
-#else
     int nprow = pfock->nprow;
     int npcol = pfock->npcol;
     int block[2];
@@ -44,12 +42,10 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
     }
     block[0] = nprow;
     block[1] = npcol;           
-#endif
     dims[0] = nshells;
     dims[1] = nshells;
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysCreate_d( eldga, 2, dims, "array Screening", &pfock->ga_screening);
-    PFOCK_INFO("Created screening GA ...\n");
+    ElGlobalArraysCreateIrreg_d( eldga, 2, dims, "array Screening", block, map, &pfock->ga_screening);
 #else    
     pfock->ga_screening =
         NGA_Create_irreg(C_DBL, 2, dims, "array Screening", block, map);
@@ -103,15 +99,15 @@ int schwartz_screening(PFock_t pfock, BasisSet_t basis)
     }
     int lo[2];
     int hi[2];
+
     lo[0] = startM;
-    hi[0] = endM;
     lo[1] = startN;
+    hi[0] = endM;
     hi[1] = endN;
     int ld = endN - startN + 1;
 #if defined(USE_ELEMENTAL)
     ElGlobalArraysPut_d( eldga, pfock->ga_screening, lo, hi, 
                          sq_values, &ld );
-    ElGlobalArraysSync_d( eldga );
 #else 
     NGA_Put(pfock->ga_screening, lo, hi, sq_values, &ld);
 #endif

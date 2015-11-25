@@ -48,7 +48,7 @@ static PFockStatus_t init_fock(PFock_t pfock)
 
     nbp_p = pfock->nbp_p;
     nbp_row = pfock->nprow * nbp_p;
-    nbp_col = pfock->npcol *nbp_p;
+    nbp_col = pfock->npcol * nbp_p;
     nshells = pfock->nshells;
     // partition task blocks
     nprow = pfock->nprow;
@@ -335,23 +335,19 @@ static PFockStatus_t repartition_fock (PFock_t pfock)
 static PFockStatus_t create_GA (PFock_t pfock)
 {
     int nbf;
-    int nprow;
-    int npcol;
     int dims[2];
-#if defined(USE_ELEMENTAL)
-#else
     int i;
     int *map;
     int block[2];
-#endif
+    int nprow;
+    int npcol;
     char str[8];
 
     // create global arrays
     nbf = pfock->nbf;
+
     nprow = pfock->nprow;
     npcol = pfock->npcol;
-#if defined(USE_ELEMENTAL)
-#else
     map = (int *)PFOCK_MALLOC(sizeof(int) * (nprow + npcol));
     if (NULL == map) {
         PFOCK_PRINTF(1, "memory allocation failed\n");
@@ -366,7 +362,6 @@ static PFockStatus_t create_GA (PFock_t pfock)
     } 
     block[0] = nprow;
     block[1] = npcol;
-#endif
 
     dims[0] = nbf;
     dims[1] = nbf;
@@ -381,9 +376,8 @@ static PFockStatus_t create_GA (PFock_t pfock)
         return PFOCK_STATUS_ALLOC_FAILED;        
     }
 
-    sprintf(str, "D_0");
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysCreate_d( eldga, 2, dims, str, &pfock->ga_D[0]);
+    ElGlobalArraysCreateIrreg_d( eldga, 2, dims, str, block, map, &pfock->ga_D[0]);
 #else
     pfock->ga_D[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
     if (0 == pfock->ga_D[0]) {
@@ -394,7 +388,6 @@ static PFockStatus_t create_GA (PFock_t pfock)
     
     for (int i = 0; i < pfock->max_numdmat2; i++) {
         if (i != 0) {                
-            sprintf(str, "D_%d", i);
 #if defined(USE_ELEMENTAL)
             ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], str, &pfock->ga_D[i] );
 #else
@@ -406,7 +399,6 @@ static PFockStatus_t create_GA (PFock_t pfock)
 #endif
         }
     
-        sprintf(str, "F_%d", i);
 #if defined(USE_ELEMENTAL)
         ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], str, &pfock->ga_F[i] );
 #else
@@ -417,7 +409,6 @@ static PFockStatus_t create_GA (PFock_t pfock)
         }
 #endif
 
-        sprintf (str, "K_%d", i);
 #if defined(USE_ELEMENTAL)
         ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], str, &pfock->ga_K[i] );
 #else
@@ -433,10 +424,7 @@ static PFockStatus_t create_GA (PFock_t pfock)
     pfock->gatable[PFOCK_MAT_TYPE_J] = pfock->ga_F;
     pfock->gatable[PFOCK_MAT_TYPE_K] = pfock->ga_K;
 
-#if defined(USE_ELEMENTAL)
-#else
     PFOCK_FREE(map);
-#endif
 
     return PFOCK_STATUS_SUCCESS;
 }
@@ -465,17 +453,12 @@ static void destroy_GA(PFock_t pfock)
 static PFockStatus_t create_FD_GArrays (PFock_t pfock)
 {
     int dims[2];
-#if defined(USE_ELEMENTAL)
-#else
     int block[2];
-#endif
     char str[8];
     
     int sizeD1 = pfock->sizeX1;
     int sizeD2 = pfock->sizeX2;
     int sizeD3 = pfock->sizeX3;  
-#if defined(USE_ELEMENTAL)
-#else
     int *map = (int *)PFOCK_MALLOC(sizeof(int) * (1 + pfock->nprocs));
     if (NULL == map) {
         PFOCK_PRINTF(1, "memory allocation failed\n");
@@ -489,7 +472,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
         map[i] = i;
     }
     map[pfock->nprocs] = 0;
-#endif
+    
     dims[0] = pfock->nprocs;
     dims[1] = sizeD1;
     pfock->ga_D1 = (int *)PFOCK_MALLOC(sizeof(int) * pfock->max_numdmat2);
@@ -497,15 +480,13 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
         PFOCK_PRINTF(1, "memory allocation failed\n");
         return PFOCK_STATUS_ALLOC_FAILED;
     }
-    sprintf(str, "D1_0");
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysCreate_d( eldga, 2, dims, str, &pfock->ga_D1[0] );
+    ElGlobalArraysCreateIrreg_d( eldga, 2, dims, str, block, map, &pfock->ga_D1[0] );
 #else
     pfock->ga_D1[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
 #endif
     for (int i = 0; i < pfock->max_numdmat2; i++) {
         if (i != 0) {
-            sprintf(str, "D1_%d", i);
 #if defined(USE_ELEMENTAL)
             ElGlobalArraysDuplicate_d( eldga, pfock->ga_D1[0], str, &pfock->ga_D1[i] );
 #else
@@ -521,15 +502,12 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
 #endif
     }
         
-#if defined(USE_ELEMENTAL)
-#else
     // for D2
     for (int i = 0; i < pfock->nprocs; i++)
     {
         map[i] = i;
     }
     map[pfock->nprocs] = 0;
-#endif
     dims[0] = pfock->nprocs;
     dims[1] = sizeD2;
     pfock->ga_D2 = (int *)PFOCK_MALLOC(sizeof(int) * pfock->max_numdmat2);
@@ -537,15 +515,13 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
         PFOCK_PRINTF(1, "memory allocation failed\n");
         return PFOCK_STATUS_ALLOC_FAILED;
     }
-    sprintf(str, "D2_0");
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysCreate_d( eldga, 2, dims, str, &pfock->ga_D2[0] );
+    ElGlobalArraysCreateIrreg_d( eldga, 2, dims, str, block, map, &pfock->ga_D2[0] );
 #else
     pfock->ga_D2[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
 #endif
     for (int i = 0; i < pfock->max_numdmat2; i++) {
         if (i != 0) {
-            sprintf(str, "D2_%d", i);
 #if defined(USE_ELEMENTAL)
             ElGlobalArraysDuplicate_d( eldga, pfock->ga_D2[0], str, &pfock->ga_D2[i] );
 #else
@@ -561,15 +537,13 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
 #endif
     }
  
-#if defined(USE_ELEMENTAL)
-#else   
     // for D3
     for (int i = 0; i < pfock->nprocs; i++)
     {
         map[i] = i;
     }
     map[pfock->nprocs] = 0;
-#endif
+    
     dims[0] = pfock->nprocs;
     dims[1] = sizeD3;
     pfock->ga_D3 = (int *)PFOCK_MALLOC(sizeof(int) * pfock->max_numdmat2);
@@ -577,19 +551,15 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
         PFOCK_PRINTF(1, "memory allocation failed\n");
         return PFOCK_STATUS_ALLOC_FAILED;
     }
-    sprintf(str, "D3_0");
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysCreate_d( eldga, 2, dims, str, &pfock->ga_D3[0] );
-    printf ("%s created ...\n", str);
+    ElGlobalArraysCreateIrreg_d( eldga, 2, dims, str, block, map, &pfock->ga_D3[0] );
 #else
     pfock->ga_D3[0] = NGA_Create_irreg(C_DBL, 2, dims, str, block, map);
 #endif
     for (int i = 0; i < pfock->max_numdmat2; i++) {
         if (i != 0) {
-            sprintf(str, "D3_%d", i);
 #if defined(USE_ELEMENTAL)
             ElGlobalArraysDuplicate_d( eldga, pfock->ga_D3[0], str, &pfock->ga_D3[i] );
-            printf ("%s created ...\n", str);
 #else
             pfock->ga_D3[i] = GA_Duplicate(pfock->ga_D3[0], str);
 #endif
@@ -615,24 +585,18 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
     }
 
     for (int i = 0; i < pfock->max_numdmat2; i++) {
-        sprintf(str, "F1_%d", i);
 #if defined(USE_ELEMENTAL)
         ElGlobalArraysDuplicate_d( eldga, pfock->ga_D1[0], str, &pfock->ga_F1[i] );
-        printf ("%s created ...\n", str);
 #else
         pfock->ga_F1[i] = GA_Duplicate(pfock->ga_D1[0], str);
 #endif
-        sprintf(str, "F2_%d", i);
 #if defined(USE_ELEMENTAL)
         ElGlobalArraysDuplicate_d( eldga, pfock->ga_D2[0], str, &pfock->ga_F2[i] );
-        printf ("%s created ...\n", str);
 #else
         pfock->ga_F2[i] = GA_Duplicate(pfock->ga_D2[0], str);
 #endif
-        sprintf(str, "F3_%d", i);
 #if defined(USE_ELEMENTAL)
         ElGlobalArraysDuplicate_d( eldga, pfock->ga_D3[0], str, &pfock->ga_F3[i] );
-        printf ("%s created ...\n", str);
 #else
         pfock->ga_F3[i] = GA_Duplicate(pfock->ga_D3[0], str);
 #endif
@@ -648,10 +612,7 @@ static PFockStatus_t create_FD_GArrays (PFock_t pfock)
 #endif
     }
     
-#if defined(USE_ELEMENTAL)
-#else
     PFOCK_FREE(map);
-#endif
 
     return PFOCK_STATUS_SUCCESS; 
 }
@@ -834,7 +795,8 @@ static PFockStatus_t create_buffers (PFock_t pfock)
     pfock->ldX3 = maxcolsize;
     pfock->ldX4 = maxcolfuncs;
     pfock->ldX5 = maxcolsize;
-    pfock->ldX6 = maxcolfuncs;        
+    pfock->ldX6 = maxcolfuncs;
+    
     return PFOCK_STATUS_SUCCESS;
 }
 
@@ -894,7 +856,9 @@ static void destroy_buffers (PFock_t pfock)
 PFockStatus_t init_GA(int nbf, int nprow, int npcol,
                       int num_dmat, int sizeheap, int sizestack)
 {
-    // Create EL GlobalArrays object
+    // Create EL GlobalArrays object:
+    // _d: double, _i:int/long and
+    // _s: float
 #if defined(USE_ELEMENTAL)
     ElGlobalArraysConstruct_d( &eldga );
     ElGlobalArraysConstruct_i( &eliga );
@@ -928,8 +892,8 @@ void finalize_GA(void)
 {
 #if defined(USE_ELEMENTAL)
     // call destructor
-    ElGlobalArraysDestruct_i( eliga );
     ElGlobalArraysDestruct_d( eldga );
+    ElGlobalArraysDestruct_i( eliga );
 
     ElGlobalArraysTerminate_d( eldga );
     ElGlobalArraysTerminate_i( eliga );
@@ -1003,7 +967,6 @@ PFockStatus_t PFock_create(BasisSet_t basis, int nprow, int npcol, int ntasks,
           
     // init global arrays
     init_GA(pfock->nbf, nprow, npcol, pfock->max_numdmat2, 0, 0);
-    printf ("GA initialized...\n");
         
     // set tasks
     int minnshells = (nprow > npcol ? nprow : npcol);
@@ -1220,13 +1183,13 @@ PFockStatus_t PFock_putDenMat(int rowstart, int rowend,
         PFOCK_PRINTF (1, "Invalid index\n");
         return PFOCK_STATUS_INVALID_VALUE;
     }
-    
+
     lo[0] = rowstart;
     hi[0] = rowend;    
     lo[1] = colstart;
     hi[1] = colend;
     ld[0] = stride;
-    
+
 #if defined(USE_ELEMENTAL)
     ElGlobalArraysPut_d( eldga, pfock->ga_D[index], lo, hi, dmat, ld );
 #else 
@@ -1327,7 +1290,6 @@ PFockStatus_t PFock_getMat(PFock_t pfock, PFockMatType_t type,
     lo[1] = colstart;
     hi[1] = colend;
     ld[0] = stride;
-    
     ga = pfock->gatable[type];
 #if defined(USE_ELEMENTAL)
     ElGlobalArraysGet_d( eldga, ga[index], lo, hi, mat, ld );
@@ -1347,7 +1309,7 @@ PFockStatus_t PFock_getMat(PFock_t pfock, PFockMatType_t type,
         }
         int ga_K = pfock->ga_K[index];
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysGet_d( eldga, ga_K, lo, hi, K, &stride );
+        ElGlobalArraysGet_d( eldga, ga_K, lo, hi, K, &stride );	
 #else 
         NGA_Get(ga_K, lo, hi, K, &stride);
 #endif
@@ -1376,7 +1338,7 @@ PFockStatus_t PFock_getMatGA(PFock_t pfock, PFockMatType_t type,
     GA_Copy(my_ga[index], ga);
 #endif
     
- #ifndef __SCF__
+#ifndef __SCF__
     if (PFOCK_MAT_TYPE_F == type) {
         int ga_K = pfock->ga_K[index];
         double fone = 1.0;
@@ -1435,8 +1397,13 @@ PFockStatus_t PFock_getLocalMatPtr(PFock_t pfock,
     ga = pfock->gatable[type];
     MPI_Comm_rank (MPI_COMM_WORLD, &myrank);
 
-    // Note: this cannot be mapped to 
+    // Note: nga_distr cannot be mapped to 
     // Elemental::GlobalArrays directly
+    // since we use El MC x MR element-wise
+    // distribution... as a result, 
+    // nga_access/release is no longer a 
+    // local operation, and requires additional
+    // get/puts
 #if defined(USE_ELEMENTAL)
     ElGlobalArraysDistribution_d( eldga, ga[index], myrank, lo, hi);
     ElGlobalArraysAccess_d( eldga, ga[index], lo, hi, mat, stride );
@@ -1485,8 +1452,10 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
     struct timeval tv2;
     struct timeval tv3;
     struct timeval tv4; 
+
     int myrank;
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+
     pfock->committed = 0;      
     pfock->timepass = 0.0;
     pfock->timereduce = 0.0;
@@ -1549,42 +1518,43 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
     #endif
     #endif
     #if defined(USE_ELEMENTAL)
-        ElGlobalArraysFill_d( eldga, pfock->ga_F1[i], &dzero);
+	ElGlobalArraysFill_d( eldga, pfock->ga_F1[i], &dzero);
         ElGlobalArraysFill_d( eldga, pfock->ga_F2[i], &dzero);
-        ElGlobalArraysFill_d( eldga, pfock->ga_F3[i], &dzero);
+        ElGlobalArraysFill_d( eldga, pfock->ga_F3[i], &dzero);        
     #else
         GA_Fill(pfock->ga_F1[i], &dzero);
         GA_Fill(pfock->ga_F2[i], &dzero);
         GA_Fill(pfock->ga_F3[i], &dzero);
     #endif
     }
+
     // local my D
     load_local_bufD(pfock);
-#if defined(USE_ELEMENTAL)
-    lo[0] = 0;
-    hi[0] = 0;
-#else
+
     lo[0] = myrank;
     hi[0] = myrank;
-#endif
     lo[1] = 0;
     for (int i = 0; i < pfock->num_dmat2; i++) {
         int ldD;
         hi[1] = sizeX1 - 1;
 #if defined(USE_ELEMENTAL)
+	// NOTE: GTFock assumes block distribution, whereas in Elemental
+	// matrices are distributed using element-wise cyclic fashion
+	// Hence, we need some extra Get calls to ensure D-buffers contain
+	// all the data inside Access	
 	ElGlobalArraysAccess_d( eldga, pfock->ga_D1[i], lo, hi, &D1[i], &ldD );
 #else
         NGA_Access(pfock->ga_D1[i], lo, hi, &D1[i], &ldD);
 #endif
         hi[1] = sizeX2 - 1;
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysAccess_d( eldga, pfock->ga_D2[i], lo, hi, &D2[i], &ldD );
+	ElGlobalArraysAccess_d( eldga, pfock->ga_D2[i], lo, hi, &D2[i], &ldD );
 #else
         NGA_Access(pfock->ga_D2[i], lo, hi, &D2[i], &ldD);
 #endif
         hi[1] = sizeX3 - 1;
 #if defined(USE_ELEMENTAL)
-        ElGlobalArraysAccess_d( eldga, pfock->ga_D3[i], lo, hi, &D3[i], &ldD );
+	ElGlobalArraysAccess_d( eldga, pfock->ga_D3[i], lo, hi, &D3[i], &ldD );
 #else
         NGA_Access(pfock->ga_D3[i], lo, hi, &D3[i], &ldD);
 #endif
@@ -1642,19 +1612,15 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
              pfock->rowpos[my_sshellrow],
              pfock->colpos[my_sshellcol],
              ldX3, ldX4, ldX5, ldX6);  
-#if defined(USE_ELEMENTAL)
-    lo[0] = 0;
-    hi[0] = 0;
-#else
+
     lo[0] = myrank;
     hi[0] = myrank;
-#endif
-    lo[1] = 0;    
+    lo[1] = 0;   
     for (int i = 0; i < pfock->num_dmat2; i++) {
         hi[1] = sizeX1 - 1;
 #ifdef GA_NB
         // save results for local intergrals
-#if defined(USE_ELEMENTAL)
+#if defined(USE_ELEMENTAL)	
 	ElGlobalArraysNBAccumulate_d( eldga, pfock->ga_F1[i], lo, hi, 
                                &F1[i * sizeX1], &sizeX1, &done, &nbhdlF1 );
         hi[1] = sizeX2 - 1;
@@ -1693,6 +1659,7 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
 #endif
 #endif
     }
+    
     pfock->ngacalls += 3;
     pfock->volumega += (sizeX1 + sizeX2 + sizeX3) * sizeof(double);
     gettimeofday (&tv4, NULL);
@@ -1702,6 +1669,11 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
     // to steal
     pfock->steals = 0;
     pfock->stealfrom = 0;
+    // Note: Task stealing is probably not possibly in it's
+    // current form using Elemental, so for Elemental GA
+    // this must always be turned off. Explicitly commenting
+    // it out to avoid any confusion.
+#if 0
 #ifdef __DYNAMIC__
 #ifdef GA_NB
 #if defined(USE_ELEMENTAL)
@@ -1717,7 +1689,7 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
     double **VD2 = pfock->D2;
     double **VD3 = pfock->D3;
     int prevrow = myrow;
-    int prevcol = mycol;   
+    int prevcol = mycol;  
     /* steal tasks */
     for (int idx = 0; idx < pfock->nprocs - 1; idx++) {
         int vpid = (myrank + idx + 1)%pfock->nprocs;
@@ -1924,13 +1896,9 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
                     pfock->volumega += sizeX1 * sizeof(double);
                 }
             } else {
-#if defined(USE_ELEMENTAL)
-   	 	lo[0] = 0;
-    		hi[0] = 0;
-#else
+
                 lo[0] = myrank;
                 hi[0] = myrank;
-#endif
                 for (int i = 0; i < pfock->num_dmat2; i++) {
                 #ifdef GA_NB   
                 #if defined(USE_ELEMENTAL)
@@ -1978,13 +1946,8 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
                     pfock->volumega += sizeX2 * sizeof(double);
                 }
             } else {
-#if defined(USE_ELEMENTAL)
-   	 	lo[0] = 0;
-    		hi[0] = 0;
-#else
                 lo[0] = myrank;
                 hi[0] = myrank;
-#endif
                 for (int i = 0; i < pfock->num_dmat2; i++) {
                 #ifdef GA_NB
                 #if defined(USE_ELEMENTAL)
@@ -2038,6 +2001,7 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
                         (tv4.tv_usec - tv3.tv_usec) / 1000.0 / 1000.0;
     } /* steal tasks */    
 #endif /* #ifdef __DYNAMIC__ */
+#endif
 
 #ifdef GA_NB
 #if defined(USE_ELEMENTAL)
@@ -2051,20 +2015,28 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
     NGA_NbWait (&nbhdlF3);
 #endif
 #endif
-#if defined(USE_ELEMENTAL)
-#else
     lo[0] = myrank;
     hi[0] = myrank;
-    lo[1] = 0;
+    lo[1] = 0;    
     for (int i = 0; i < pfock->num_dmat2; i++) {
-        hi[1] = sizeX1 - 1;
+	hi[1] = sizeX1 - 1;
+#if defined(USE_ELEMENTAL)
+    // Put back updated D-buffers to the GA,
+    // because El distribution, nga_release
+    // is not a local operation
+	ElGlobalArraysRelease_d( eldga, pfock->ga_D1[i], lo, hi );
+	hi[1] = sizeX2 - 1;
+	ElGlobalArraysRelease_d( eldga, pfock->ga_D2[i], lo, hi );
+	hi[1] = sizeX3 - 1;
+	ElGlobalArraysRelease_d( eldga, pfock->ga_D3[i], lo, hi );
+#else
         NGA_Release(pfock->ga_D1[i], lo, hi);
         hi[1] = sizeX2 - 1;
         NGA_Release(pfock->ga_D2[i], lo, hi);
         hi[1] = sizeX3 - 1;
         NGA_Release(pfock->ga_D3[i], lo, hi);
-    }
 #endif
+    }
     
     gettimeofday (&tv2, NULL);
     pfock->timepass = (tv2.tv_sec - tv1.tv_sec) +
@@ -2161,9 +2133,10 @@ PFockStatus_t PFock_createCoreHMat(PFock_t pfock, BasisSet_t basis)
 #else
     GA_Fill(pfock->ga_H, &dzero);
 #endif
+
 #if defined(USE_ELEMENTAL)
-    ElGlobalArraysDistribution_d( eldga, pfock->ga_H, myrank, lo, hi);
-    ElGlobalArraysAccess_d( eldga, pfock->ga_H, lo, hi, &mat, &stride );
+    ElGlobalArraysDistribution_d( eldga, pfock->ga_H, myrank, lo, hi );
+    ElGlobalArraysAccess_d( eldga, pfock->ga_H, lo, hi, &mat, &stride );   
 #else
     NGA_Distribution(pfock->ga_H, myrank, lo, hi);
     NGA_Access(pfock->ga_H, lo, hi, &mat, &stride);   
@@ -2172,8 +2145,8 @@ PFockStatus_t PFock_createCoreHMat(PFock_t pfock, BasisSet_t basis)
     compute_H(pfock, basis, pfock->sshell_row, pfock->eshell_row,
               pfock->sshell_col, pfock->eshell_col, stride, mat);
     
-    // Note: NGA_Release(_update) is a no-op in El::GA
 #if defined(USE_ELEMENTAL)
+    ElGlobalArraysRelease_d( eldga, pfock->ga_H, lo, hi );
 #else
     NGA_Release_update(pfock->ga_H, lo, hi);
 #endif
@@ -2229,10 +2202,10 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);    
 #if defined(USE_ELEMENTAL)
     ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], "overlap mat", &pfock->ga_S );
-    // compute S
     ElGlobalArraysFill_d( eldga, pfock->ga_S, &dzero);
-    ElGlobalArraysDistribution_d( eldga, pfock->ga_S, myrank, lo, hi);
-    ElGlobalArraysAccess_d( eldga, pfock->ga_S, lo, hi, &mat, &stride );
+
+    ElGlobalArraysDistribution_d( eldga, pfock->ga_S, myrank, lo, hi );
+    ElGlobalArraysAccess_d( eldga, pfock->ga_S, lo, hi, &mat, &stride );   
 #else
     pfock->ga_S = GA_Duplicate(pfock->ga_D[0], "overlap mat");
     if (0 == pfock->ga_S) {
@@ -2244,11 +2217,12 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
     NGA_Distribution(pfock->ga_S, myrank, lo, hi);
     NGA_Access(pfock->ga_S, lo, hi, &mat, &stride);    
 #endif
-
+   
     compute_S(pfock, basis, pfock->sshell_row, pfock->eshell_row,
               pfock->sshell_col, pfock->eshell_col, stride, mat);
 
 #if defined(USE_ELEMENTAL)
+    ElGlobalArraysRelease_d( eldga, pfock->ga_S, lo, hi );
 #else
     NGA_Release_update(pfock->ga_S, lo, hi);
 #endif
@@ -2257,7 +2231,7 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
 #else
     GA_Sync();
 #endif
-    
+   
     // compute X         
     int nbf = CInt_getNumFuncs(basis);
     double *eval = (double *)malloc(nbf * sizeof (double));
@@ -2266,7 +2240,7 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
         return PFOCK_STATUS_ALLOC_FAILED;        
     }
 #if defined(USE_ELEMENTAL)
-    int ga_tmp = -1, ga_tmp2 = -1;
+    int ga_tmp, ga_tmp2;
     ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], "tmp mat", &ga_tmp );
     ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], "tmp mat", &ga_tmp2 );
 #else
@@ -2324,6 +2298,8 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
     }
     free(lambda_vector);
 #if defined(USE_ELEMENTAL)
+    ElGlobalArraysRelease_d( eldga, ga_tmp, lo, hi );
+    ElGlobalArraysRelease_d( eldga, ga_tmp2, lo, hi );
 #else
     NGA_Release(ga_tmp, lo, hi);
     NGA_Release_update(ga_tmp2, lo, hi);
@@ -2332,6 +2308,7 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
     ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], "X mat", &pfock->ga_X );
     ElGlobalArraysDgemm_d( eldga, 'N', 'T', nbf, nbf, nbf,
              1.0, ga_tmp2, ga_tmp, 0.0, pfock->ga_X );
+    
     ElGlobalArraysDestroy_d( eldga, ga_tmp );
     ElGlobalArraysDestroy_d( eldga, ga_tmp2 );
 #else

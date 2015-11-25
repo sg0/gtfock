@@ -78,7 +78,6 @@ static void initial_guess(PFock_t pfock, BasisSet_t basis, int ispurif,
     }
 }
 
-
 /// compute Hartree-Fock energy
 static double compute_energy(purif_t * purif, double *F_block, double *D_block)
 {
@@ -104,7 +103,6 @@ static double compute_energy(purif_t * purif, double *F_block, double *D_block)
     return energy;
 }
 
-
 /// build a Fock matrix
 static void fock_build(PFock_t pfock, BasisSet_t basis,
                        int ispurif, int rowstart, int rowend,
@@ -116,6 +114,7 @@ static void fock_build(PFock_t pfock, BasisSet_t basis,
         PFock_putDenMat(rowstart, rowend, colstart, colend,
                         stride, D_block, USE_D_ID, pfock);
     }
+    
     PFock_commitDenMats(pfock);
 
     // compute Fock matrix
@@ -128,8 +127,6 @@ static void fock_build(PFock_t pfock, BasisSet_t basis,
                      stride, F_block);
     }
 }
-
-
 
 static void init_oedmat(BasisSet_t basis, PFock_t pfock,
                         purif_t * purif, int nprow, int npcol)
@@ -152,12 +149,11 @@ static void init_oedmat(BasisSet_t basis, PFock_t pfock,
 
     // compute S and X
     if (myrank == 0) {
-        printf("  computing H\n");
+        printf("  computing S and X\n");
     }
     t1 = MPI_Wtime();
+    
     PFock_createOvlMat(pfock, basis);
-    if (myrank == 0)
-	printf ("Creating OvlMat\n");
 
     if (purif->runpurif == 1) {
         PFock_getOvlMat(pfock, srow_purif, erow_purif, scol_purif, ecol_purif,
@@ -165,6 +161,7 @@ static void init_oedmat(BasisSet_t basis, PFock_t pfock,
         PFock_getOvlMat2(pfock, srow_purif, erow_purif, scol_purif, ecol_purif,
                          ldx, purif->X_block);
     }
+   
     PFock_destroyOvlMat(pfock);
     t2 = MPI_Wtime();
     if (myrank == 0) {
@@ -371,7 +368,6 @@ int main (int argc, char **argv)
         if (myrank == 0) {
             printf("After fock build \n");
         }
-	printf ("purif->D_block[0] = %f, purif->F_block[0] = %f\n", purif->D_block[0], purif->F_block[0]);
 
         // compute energy
         double energy = compute_energy(purif, purif->F_block, purif->D_block);

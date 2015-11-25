@@ -14,18 +14,13 @@
 int init_taskq(PFock_t pfock)
 {
     int dims[2];
-#if defined(USE_ELEMENTAL)
-#else
     int block[2];
-#endif
     
     // create GA for dynamic scheduler
     int nprow = pfock->nprow;
     int npcol = pfock->npcol;
     dims[0] = nprow;
     dims[1] = npcol;
-#if defined(USE_ELEMENTAL)
-#else
     block[0] = nprow;
     block[1] = npcol;    
     int *map = (int *)PFOCK_MALLOC(sizeof(int) * (nprow + npcol));
@@ -38,22 +33,17 @@ int init_taskq(PFock_t pfock)
     for (int i = 0; i < npcol; i++) {
         map[i + nprow] = i;
     }
-#endif
 #if defined(USE_ELEMENTAL)
-    printf ("init_taskq: Creating %d (h) x %d (w) GA...\n", dims[0], dims[1]);
-    ElGlobalArraysCreate_i( eliga, 2, dims, "array taskid", &pfock->ga_taskid );
-#if 0 // using 1D DM for fetch-and-add
-    const ElInt length = dims[0] * dims[1];
-    ElGlobalArraysCreate_i( eliga, 1, &length, "array taskid", &pfock->ga_taskid );
-#endif
+    ElGlobalArraysCreateIrreg_i( eliga, 2, dims, "array taskid", block, map, &pfock->ga_taskid );
 #else
     pfock->ga_taskid =
         NGA_Create_irreg(C_INT, 2, dims, "array taskid", block, map);
     if (0 == pfock->ga_taskid) {
         return -1;
     }
-    PFOCK_FREE(map);
 #endif
+    
+    PFOCK_FREE(map);
     
     return 0;
 }
@@ -88,14 +78,6 @@ int taskq_next(PFock_t pfock, int myrow, int mycol, int ntasks)
     idx[1] = mycol;
     int nxtask;
 #if defined(USE_ELEMENTAL)
-#if 0 // using 1D DM for fetch-and-add
-    ElInt length, ndim, pos; 
-    ElGlobalArraysInquire_i( eliga, pfock->ga_taskid, &ndim, &length );
-    pos = idx[0] * length + idx[1];
-    // read inc
-    ElGlobalArraysReadIncrement_i( eliga, pfock->ga_taskid, 
-                                   &pos, ntasks, &nxtask);
-#endif
     ElGlobalArraysReadIncrement_i( eliga, pfock->ga_taskid, 
                                    idx, ntasks, &nxtask);
 #else

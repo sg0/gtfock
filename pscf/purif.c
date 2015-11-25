@@ -98,6 +98,7 @@ static void config_purif (purif_t * purif, int purif_offload)
     // create local arrays
     // purif->ldx = (ncols + ALIGNSIZE - 1)/ALIGNSIZE * ALIGNSIZE;
     purif->ldx = ncols;
+
     meshsize = nrows * ncols;
     purif->meshsize = meshsize;
     purif->X_block = (double *) mkl_malloc (meshsize * sizeof (double), 64);

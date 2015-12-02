@@ -12,6 +12,10 @@ ifeq "${SCF_OUT}" "1"
 CFLAGS += -D__SCF_OUT__
 endif
 
+ifeq "${CHECK_FOR_NAN}" "1"
+CFLAGS += -D__CHECK_FOR_NAN__
+endif
+
 ifeq "${ELEMENTAL}" "1"
 INC = -I./                  \
       -I../install          \
@@ -45,7 +49,7 @@ LIBS = ${MPI_LIBS}       \
        ${PFOCK_LIBS}     \
        ${ERD_LIBS}       \
        ${EL_LIBS}        \
-       -lifcore -limf
+       -lirc -lifcore -limf
 else
 LDFLAGS = -L${MPI_LIBDIR}       \
           -L${GA_LIBDIR}        \
@@ -60,7 +64,7 @@ LIBS = ${MPI_LIBS}       \
        ${ERD_LIBS}       \
        ${GA_LIBS}        \
        ${ARMCI_LIBS}     \
-       -lifcore -limf
+       -lirc -lifcore -limf
 endif
 
 all: ${EXEC} 

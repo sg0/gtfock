@@ -28,7 +28,6 @@ struct PFock {
     double maxvalue;
     double tolscr;
     double tolscr2;
-
     // problem parameters
     int nbf;
     int nshells;

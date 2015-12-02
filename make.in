@@ -1,32 +1,45 @@
-#INTELROOT = /opt/intel/compilers_and_libraries_2016/linux
-#MKLROOT = /opt/intel/compilers_and_libraries_2016/linux/mkl
-INTELROOT = /opt/intel/composer_xe_2015
-MKLROOT = /opt/intel/composer_xe_2015/mkl
+INTELROOT = /opt/intel/compilers_and_libraries_2016/linux
+MKLROOT = /opt/intel/compilers_and_libraries_2016/linux/mkl
 MPIROOT = /home/sg/builds/mpich-intel
-#MPIROOT = /home/sg/builds/mvapich2-intel
 
-#CC  = ${INTELROOT}/bin/intel64/icc
-#CXX = ${INTELROOT}/bin/intel64/icpc
-#FC  = ${INTELROOT}/bin/intel64/ifort
-#AR  = ${INTELROOT}/bin/intel64/xiar rcs
-CC  = ${INTELROOT}/bin/icc
-CXX = ${INTELROOT}/bin/icpc
-FC  = ${INTELROOT}/bin/ifort
-AR  = ${INTELROOT}/bin/xiar rcs
+#INTELROOT = /opt/intel/composer_xe_2015
+#MKLROOT = /opt/intel/composer_xe_2015/mkl
+#MPIROOT = /home/sg/builds/mpich-intel
+
+CC  = ${INTELROOT}/bin/intel64/icc
+CXX = ${INTELROOT}/bin/intel64/icpc
+FC  = ${INTELROOT}/bin/intel64/ifort
+AR  = ${INTELROOT}/bin/intel64/xiar rcs
+
+#CC  = ${INTELROOT}/bin/icc
+#CXX = ${INTELROOT}/bin/icpc
+#FC  = ${INTELROOT}/bin/ifort
+#AR  = ${INTELROOT}/bin/xiar rcs
 
 MPICC  = ${MPIROOT}/bin/mpicc
 MPICXX  = ${MPIROOT}/bin/mpicxx
 
-ELEMENTAL   = 1
-DYNAMIC     = 0
-DO_SCF      = 0
-SCF_TIMMING = 0
-SCF_OUT     = 0
+CHECK_FOR_NAN   = 0
+ELEMENTAL       = 0
+DYNAMIC         = 0
+DO_SCF          = 0
+SCF_TIMMING     = 0
+SCF_OUT         = 0
 
 #OPTFLAGS = -offload-option,mic,compiler,"-z defs -no-opt-prefetch"
 OPTFLAGS  = -offload=none
 OPTFLAGS += -m64 -xHost
-CFLAGS    = -O3 -Wall -g -openmp -std=c99 -fasm-blocks -fp-stack-check
+CFLAGS    = -O3 -Wall -g -openmp -std=c99
+# FP Exceptions will be thrown if fp_trap is on!
+#CFLAGS    = -O3 -Wall -g -openmp -std=c99 -fno-inline -ftz -fp-port -fp-model=precise -fp-trap-all=common -fasm-blocks -fp-stack-check
+#CFLAGS    = -O3 -Wall -g -openmp -std=c99 -fno-inline -fp-trap-all=common -fasm-blocks -fp-stack-check
+#CFLAGS    = -O3 -Wall -g -openmp -std=c99 -fno-inline -ftz -fp-port -fp-model fast=1 -fp-trap-all=divzero -fasm-blocks -fp-stack-check
+# some values are not nan with fp-model extended (but erroneous anyway)!
+#CFLAGS    = -O3 -Wall -g -openmp -std=c99 -fp-model extended -fno-inline
+#-O3 implies ftz
+# See: https://software.intel.com/sites/default/files/article/164389/fp-consistency-102511.pdf
+#CFLAGS    = -O3 -fasm-blocks -Wall -g -openmp -std=c11 -fimf-arch-consistency=true -fp-model precise -fp-model source -ftz -fno-inline
+#CFLAGS    = -O3 -Wall -g -openmp -std=c99 -fp-model extended -fno-inline
 CFLAGS   += -Wunknown-pragmas -Wunused-variable
 CFLAGS   += ${OPTFLAGS}
 

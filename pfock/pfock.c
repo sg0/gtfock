@@ -365,6 +365,9 @@ static PFockStatus_t create_GA (PFock_t pfock)
 
     dims[0] = nbf;
     dims[1] = nbf;
+ 
+    int myrank;
+    MPI_Comm_rank (MPI_COMM_WORLD, &myrank);
 
     pfock->ga_D = (int *)PFOCK_MALLOC(sizeof(int) * pfock->max_numdmat2);
     pfock->ga_F = (int *)PFOCK_MALLOC(sizeof(int) * pfock->max_numdmat2);
@@ -1540,8 +1543,8 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
 #if defined(USE_ELEMENTAL)
 	// NOTE: GTFock assumes block distribution, whereas in Elemental
 	// matrices are distributed using element-wise cyclic fashion
-	// Hence, we need some extra Get calls to ensure D-buffers contain
-	// all the data inside Access	
+	// Hence, we need some extra Get calls inside NGA_Access to ensure 
+	// D-buffers contain correct data
 	ElGlobalArraysAccess_d( eldga, pfock->ga_D1[i], lo, hi, &D1[i], &ldD );
 #else
         NGA_Access(pfock->ga_D1[i], lo, hi, &D1[i], &ldD);
@@ -1645,7 +1648,7 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
 			     &F1[i * sizeX1], &sizeX1, &done );
         hi[1] = sizeX2 - 1;
         ElGlobalArraysAccumulate_d( eldga, pfock->ga_F2[i], lo, hi, 
-                             &F2[i * sizeX3], &sizeX2, &done );
+                             &F2[i * sizeX2], &sizeX2, &done );
         hi[1] = sizeX3 - 1;
         ElGlobalArraysAccumulate_d( eldga, pfock->ga_F3[i], lo, hi, 
                              &F3[i * sizeX3], &sizeX3, &done );
@@ -1669,11 +1672,7 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
     // to steal
     pfock->steals = 0;
     pfock->stealfrom = 0;
-    // Note: Task stealing is probably not possibly in it's
-    // current form using Elemental, so for Elemental GA
-    // this must always be turned off. Explicitly commenting
-    // it out to avoid any confusion.
-#if 0
+
 #ifdef __DYNAMIC__
 #ifdef GA_NB
 #if defined(USE_ELEMENTAL)
@@ -2001,7 +2000,6 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
                         (tv4.tv_usec - tv3.tv_usec) / 1000.0 / 1000.0;
     } /* steal tasks */    
 #endif /* #ifdef __DYNAMIC__ */
-#endif
 
 #ifdef GA_NB
 #if defined(USE_ELEMENTAL)
@@ -2021,9 +2019,9 @@ PFockStatus_t PFock_computeFock(BasisSet_t basis,
     for (int i = 0; i < pfock->num_dmat2; i++) {
 	hi[1] = sizeX1 - 1;
 #if defined(USE_ELEMENTAL)
-    // Put back updated D-buffers to the GA,
-    // because El distribution, nga_release
-    // is not a local operation
+        // Note: Put back updated D-buffers to the GA,
+        // because of El distribution, nga_release
+        // is not a local operation
 	ElGlobalArraysRelease_d( eldga, pfock->ga_D1[i], lo, hi );
 	hi[1] = sizeX2 - 1;
 	ElGlobalArraysRelease_d( eldga, pfock->ga_D2[i], lo, hi );
@@ -2203,7 +2201,6 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
 #if defined(USE_ELEMENTAL)
     ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], "overlap mat", &pfock->ga_S );
     ElGlobalArraysFill_d( eldga, pfock->ga_S, &dzero);
-
     ElGlobalArraysDistribution_d( eldga, pfock->ga_S, myrank, lo, hi );
     ElGlobalArraysAccess_d( eldga, pfock->ga_S, lo, hi, &mat, &stride );   
 #else
@@ -2212,12 +2209,12 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
         PFOCK_PRINTF (1, "GA allocation failed\n");
         return PFOCK_STATUS_ALLOC_FAILED;
     }
-    // compute S
     GA_Fill(pfock->ga_S, &dzero);
     NGA_Distribution(pfock->ga_S, myrank, lo, hi);
     NGA_Access(pfock->ga_S, lo, hi, &mat, &stride);    
 #endif
    
+    // compute S
     compute_S(pfock, basis, pfock->sshell_row, pfock->eshell_row,
               pfock->sshell_col, pfock->eshell_col, stride, mat);
 
@@ -2226,12 +2223,13 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
 #else
     NGA_Release_update(pfock->ga_S, lo, hi);
 #endif
+
 #if defined(USE_ELEMENTAL)
     ElGlobalArraysSync_d( eldga );
 #else
     GA_Sync();
-#endif
-   
+#endif  
+
     // compute X         
     int nbf = CInt_getNumFuncs(basis);
     double *eval = (double *)malloc(nbf * sizeof (double));
@@ -2239,6 +2237,7 @@ PFockStatus_t PFock_createOvlMat(PFock_t pfock, BasisSet_t basis)
         PFOCK_PRINTF (1, "Memory allocation failed\n");
         return PFOCK_STATUS_ALLOC_FAILED;        
     }
+
 #if defined(USE_ELEMENTAL)
     int ga_tmp, ga_tmp2;
     ElGlobalArraysDuplicate_d( eldga, pfock->ga_D[0], "tmp mat", &ga_tmp );

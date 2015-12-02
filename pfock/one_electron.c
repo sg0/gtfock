@@ -141,7 +141,7 @@ void my_peig(int ga_A, int ga_B, int n, int nprow, int npcol, double *eval)
     int ione = 1;
 #ifdef GA_NB            
 #if defined(USE_ELEMENTAL)
-    typedef int ga_nbhdl_t;
+    typedef ElInt ga_nbhdl_t;
 #endif
     ga_nbhdl_t nbnb;
 #endif

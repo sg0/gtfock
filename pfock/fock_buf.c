@@ -188,7 +188,7 @@ void store_local_bufF(PFock_t pfock)
     for (int i = 0; i < pfock->num_dmat2; i++) {
     #ifdef GA_NB    
     #if defined(USE_ELEMENTAL)
-        typedef int ga_nbhdl_t;
+        typedef ElInt ga_nbhdl_t;
     #endif
         ga_nbhdl_t nbnb;
     #endif
@@ -303,6 +303,7 @@ void store_local_bufF(PFock_t pfock)
         NGA_NbWait(&nbnb);
     #endif
     #endif
+        // update release
         lo[0] = myrank;
         hi[0] = myrank;
         lo[1] = 0;
@@ -314,7 +315,6 @@ void store_local_bufF(PFock_t pfock)
         hi[1] = pfock->sizeX3 - 1;
 	ElGlobalArraysRelease_d( eldga, pfock->ga_F3[i], lo, hi );
     #else
-        // update release
         NGA_Release(pfock->ga_F1[i], lo, hi);
         hi[1] = pfock->sizeX2 - 1;
         NGA_Release(pfock->ga_F2[i], lo, hi);

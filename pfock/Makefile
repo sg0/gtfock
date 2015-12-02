@@ -13,6 +13,10 @@ ifeq "${DO_SCF}" "1"
 CFLAGS += -D__SCF__
 endif
 
+ifeq "${CHECK_FOR_NAN}" "1"
+CFLAGS += -D__CHECK_FOR_NAN__
+endif
+
 ifeq "${ELEMENTAL}" "1"
 CFLAGS += -DUSE_ELEMENTAL
 INC = -I.                   \

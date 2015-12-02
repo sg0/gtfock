@@ -72,6 +72,12 @@ static void initial_guess(PFock_t pfock, BasisSet_t basis, int ispurif,
                      ldD, D_block);
         for (int x = rowstart; x <= rowend; x++) {
             for (int y = colstart; y <= colend; y++) {
+#if defined(__CHECK_FOR_NAN__)
+		printf ("NaN check: initial_guess\n");
+		double d_b = D_block[(x - rowstart) * ldD + (y - colstart)];
+		if (d_b != d_b)
+		    assert(!"initial_guess: NaN detected (D_block)");
+#endif
                 D_block[(x - rowstart) * ldD + (y - colstart)] *= R/2.0;
             }
         }
@@ -92,6 +98,15 @@ static double compute_energy(purif_t * purif, double *F_block, double *D_block)
         #pragma omp parallel for reduction(+: etmp)
         for (int i = 0; i < nrows; i++) {
             for (int j = 0; j < ncols; j++) {
+#if defined(__CHECK_FOR_NAN__)
+		printf ("NaN check: compute_energy\n");
+		double f_b = F_block[i * ldx + j];
+		double h_b = H_block[i * ldx + j];
+		if (f_b != f_b)
+		    assert(!"compute_energy: NaN detected (F_block)");
+		if (h_b != h_b)
+		    assert(!"compute_energy: NaN detected (H_block)");
+#endif
                 F_block[i * ldx + j] += H_block[i * ldx + j];
                 etmp += D_block[i * ldx + j] *
                     (H_block[i * ldx + j] + F_block[i * ldx + j]);
@@ -113,6 +128,12 @@ static void fock_build(PFock_t pfock, BasisSet_t basis,
     if (1 == ispurif) {
         PFock_putDenMat(rowstart, rowend, colstart, colend,
                         stride, D_block, USE_D_ID, pfock);
+#if defined(__CHECK_FOR_NAN__)		
+	printf ("NaN check: fock_build (D_block)\n");
+	double d_b = D_block[0];
+	if (d_b != d_b)
+	    assert(!"fock_build: NaN detected (D_block)");
+#endif
     }
     
     PFock_commitDenMats(pfock);
@@ -122,9 +143,15 @@ static void fock_build(PFock_t pfock, BasisSet_t basis,
     
     // get Fock matrix
     if (1 == ispurif) {
-        PFock_getMat(pfock, PFOCK_MAT_TYPE_F, USE_D_ID,
-                     rowstart, rowend, colstart, colend,
-                     stride, F_block);
+	PFock_getMat(pfock, PFOCK_MAT_TYPE_F, USE_D_ID,
+		rowstart, rowend, colstart, colend,
+		stride, F_block);
+#if defined(__CHECK_FOR_NAN__)		
+	printf ("NaN check: fock_build (F_block)\n");
+	double f_b = F_block[0];
+	if (f_b != f_b)
+	    assert(!"fock_build: NaN detected (F_block)");
+#endif
     }
 }
 
@@ -308,7 +335,7 @@ int main (int argc, char **argv)
         printf("Initializing pfock ...\n");
     }
     PFock_t pfock;
-    PFock_create(basis, nprow_fock, npcol_fock, nblks_fock, 1e-11,
+    PFock_create(basis, nprow_fock, npcol_fock, nblks_fock, (double)(1e-11),
                  MAX_NUM_D, IS_SYMM, &pfock);
     if (myrank == 0) {
         double mem_cpu;
@@ -343,15 +370,27 @@ int main (int argc, char **argv)
                   rowstart, rowend, colstart, colend,
                   purif->D_block, purif->ldx);
 
+    MPI_Barrier(MPI_COMM_WORLD);
+
+#if defined(__CHECK_FOR_NAN__)
+    printf ("runpurif? : %s\n", (purif->runpurif == 1 ? "YES" : "NO"));	
+    if (purif->runpurif == 1)
+    {
+	printf ("NaN check: AFTER initial_guess\n");
+	double d_b = purif->D_block[0];
+	if (d_b != d_b)
+	    assert(!"AFTER initial_guess: NaN detected (D_block)");
+    }
+#endif
+
     // compute nuc energy
     double ene_nuc = CInt_getNucEnergy(basis);
     if (myrank == 0) {
         printf("  nuc energy = %.10f\n", ene_nuc);
-
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
-
+    
     // main loop
     double t1, t2, t3, t4;
     for (int iter = 0; iter < niters; iter++) {

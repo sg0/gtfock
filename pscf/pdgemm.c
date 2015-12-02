@@ -10,7 +10,6 @@
 
 #include "pdgemm.h"
 
-
 #define P(mat,i,j,lda) ((mat)+(i)*(lda)+(j))
 static void copyMat (int m, int n, double *From, int ldfrom, double *To,
                      int ldto)
@@ -179,16 +178,28 @@ void pdgemm3D_2(int myrow, int mycol, int mygrd,
     assert (nrows0 >= nrows);
 
     double *A_block = tmpbuf->A;
-    //(double *) _mm_malloc (sizeof (double) * nrows0 * ncols0, 64);
+    //double *A_block = (double *) _mm_malloc (sizeof (double) * nrows0 * ncols0, 64);
     double *B_block = tmpbuf->C;
-    //(double *) _mm_malloc (sizeof (double) * nrows0 * ncols0, 64);
+    //double *B_block = (double *) _mm_malloc (sizeof (double) * nrows0 * ncols0, 64);
     double *C_block = tmpbuf->S;
-    //(double *) _mm_malloc (sizeof (double) * nrows0 * ncols0, 64);
+    //double *C_block = (double *) _mm_malloc (sizeof (double) * nrows0 * ncols0, 64);
     memset(A_block, 0, sizeof (double) * nrows0 * ncols0);
     copyMat(nrows, ncols, A_block_, ncols, A_block, ncols0);
     memset(B_block, 0, sizeof (double) * nrows0 * ncols0);
     copyMat(nrows, ncols, B_block_, ncols, B_block, ncols0);
 
+#if defined(__CHECK_FOR_NAN__)		
+	printf ("NaN check: Before local Dgemm (called from pdgemm3D_2)\n");
+	double a_b = A_block[0];
+	if (a_b != a_b)
+	    assert(!"pdgemm3D_2: NaN detected (A_block)");
+	double b_b = B_block[0];
+	if (b_b != b_b)
+	    assert(!"pdgemm3D_2: NaN detected (B_block)");
+	double c_b = C_block[0];
+	if (c_b != c_b)
+	    assert(!"pdgemm3D_2: NaN detected (C_Block)");
+#endif
     {
         int nrows = nrows0;
         int ncols = ncols0;

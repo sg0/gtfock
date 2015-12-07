@@ -23,6 +23,13 @@
 #define USE_D_ID     0
 #define IS_SYMM      1
 
+// copied from Jeff's mpi-qoit
+#define MPI_THREAD_STRING(level)  \
+        ( level==MPI_THREAD_SERIALIZED ? "THREAD_SERIALIZED" : \
+                ( level==MPI_THREAD_MULTIPLE ? "THREAD_MULTIPLE" : \
+                        ( level==MPI_THREAD_FUNNELED ? "THREAD_FUNNELED" : \
+                                ( level==MPI_THREAD_SINGLE ? "THREAD_SINGLE" : "UNKNOWN" ) ) ) )
+
 static void usage(char *call)
 {
     printf("Usage: %s <basis> <xyz> "
@@ -31,7 +38,6 @@ static void usage(char *call)
            "<np for purification> "
            "<ntasks> " "<#iters>\n", call);
 }
-
 
 /// compute initial guesses for the density matrix
 static void initial_guess(PFock_t pfock, BasisSet_t basis, int ispurif,
@@ -72,12 +78,6 @@ static void initial_guess(PFock_t pfock, BasisSet_t basis, int ispurif,
                      ldD, D_block);
         for (int x = rowstart; x <= rowend; x++) {
             for (int y = colstart; y <= colend; y++) {
-#if defined(__CHECK_FOR_NAN__)
-		printf ("NaN check: initial_guess\n");
-		double d_b = D_block[(x - rowstart) * ldD + (y - colstart)];
-		if (d_b != d_b)
-		    assert(!"initial_guess: NaN detected (D_block)");
-#endif
                 D_block[(x - rowstart) * ldD + (y - colstart)] *= R/2.0;
             }
         }
@@ -98,15 +98,6 @@ static double compute_energy(purif_t * purif, double *F_block, double *D_block)
         #pragma omp parallel for reduction(+: etmp)
         for (int i = 0; i < nrows; i++) {
             for (int j = 0; j < ncols; j++) {
-#if defined(__CHECK_FOR_NAN__)
-		printf ("NaN check: compute_energy\n");
-		double f_b = F_block[i * ldx + j];
-		double h_b = H_block[i * ldx + j];
-		if (f_b != f_b)
-		    assert(!"compute_energy: NaN detected (F_block)");
-		if (h_b != h_b)
-		    assert(!"compute_energy: NaN detected (H_block)");
-#endif
                 F_block[i * ldx + j] += H_block[i * ldx + j];
                 etmp += D_block[i * ldx + j] *
                     (H_block[i * ldx + j] + F_block[i * ldx + j]);
@@ -128,14 +119,8 @@ static void fock_build(PFock_t pfock, BasisSet_t basis,
     if (1 == ispurif) {
         PFock_putDenMat(rowstart, rowend, colstart, colend,
                         stride, D_block, USE_D_ID, pfock);
-#if defined(__CHECK_FOR_NAN__)		
-	printf ("NaN check: fock_build (D_block)\n");
-	double d_b = D_block[0];
-	if (d_b != d_b)
-	    assert(!"fock_build: NaN detected (D_block)");
-#endif
     }
-    
+
     PFock_commitDenMats(pfock);
 
     // compute Fock matrix
@@ -146,12 +131,6 @@ static void fock_build(PFock_t pfock, BasisSet_t basis,
 	PFock_getMat(pfock, PFOCK_MAT_TYPE_F, USE_D_ID,
 		rowstart, rowend, colstart, colend,
 		stride, F_block);
-#if defined(__CHECK_FOR_NAN__)		
-	printf ("NaN check: fock_build (F_block)\n");
-	double f_b = F_block[0];
-	if (f_b != f_b)
-	    assert(!"fock_build: NaN detected (F_block)");
-#endif
     }
 }
 
@@ -220,19 +199,20 @@ int main (int argc, char **argv)
     // init MPI
     int myrank;
     int nprocs;
+    int provided;
 #if defined (USE_ELEMENTAL)
     ElInitialize( &argc, &argv );
     ElMPICommRank( MPI_COMM_WORLD, &myrank );
     ElMPICommSize( MPI_COMM_WORLD, &nprocs );
+    MPI_Query_thread(&provided);
 #else
-    int provided;
     MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    if (myrank == 0)  {
-        printf("MPI level: %d\n", provided);
-    }
 #endif
+    if (myrank == 0)  {
+        printf("MPI thread support: %s\n", MPI_THREAD_STRING(provided));
+    }
 #if 0
     char hostname[1024];
     gethostname (hostname, 1024);
@@ -335,7 +315,7 @@ int main (int argc, char **argv)
         printf("Initializing pfock ...\n");
     }
     PFock_t pfock;
-    PFock_create(basis, nprow_fock, npcol_fock, nblks_fock, (double)(1e-11),
+    PFock_create(basis, nprow_fock, npcol_fock, nblks_fock, 1e-11,
                  MAX_NUM_D, IS_SYMM, &pfock);
     if (myrank == 0) {
         double mem_cpu;
@@ -372,17 +352,6 @@ int main (int argc, char **argv)
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-#if defined(__CHECK_FOR_NAN__)
-    printf ("runpurif? : %s\n", (purif->runpurif == 1 ? "YES" : "NO"));	
-    if (purif->runpurif == 1)
-    {
-	printf ("NaN check: AFTER initial_guess\n");
-	double d_b = purif->D_block[0];
-	if (d_b != d_b)
-	    assert(!"AFTER initial_guess: NaN detected (D_block)");
-    }
-#endif
-
     // compute nuc energy
     double ene_nuc = CInt_getNucEnergy(basis);
     if (myrank == 0) {
@@ -411,9 +380,6 @@ int main (int argc, char **argv)
         // compute energy
         double energy = compute_energy(purif, purif->F_block, purif->D_block);
 
-        if (myrank == 0) {
-            printf("After computing energy \n");
-        }
         t2 = MPI_Wtime();
         if (myrank == 0) {
             printf("    fock build takes %.3f secs\n", t2 - t1);
@@ -478,7 +444,13 @@ int main (int argc, char **argv)
                    t2 - t1, it,
                    (it * 2.0 + 4.0) * purif_flops / (t2 - t1) / 1e9);
         }
-
+	/*
+#if defined(USE_ELEMENTAL)
+    ElGlobalArraysPrint_d( eldga, pfock->ga_D[USE_D_ID] );
+#else
+    GA_Print (pfock->ga_D[USE_D_ID]);
+#endif
+*/
         t4 = MPI_Wtime ();
         totaltime += t4 - t3;
 

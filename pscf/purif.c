@@ -14,7 +14,6 @@
 #include "pdgemm.h"
 #include "purif.h"
 
-
 #define MAX_PURF_ITERS 200
 #define MIN(a, b)    ((a) < (b) ? (a) : (b))
 #define MAX(a, b)    ((a) > (b) ? (a) : (b))
@@ -98,7 +97,6 @@ static void config_purif (purif_t * purif, int purif_offload)
     // create local arrays
     //purif->ldx = (ncols + ALIGNSIZE - 1)/ALIGNSIZE * ALIGNSIZE;
     purif->ldx = ncols;
-
     meshsize = nrows * ncols;
     purif->meshsize = meshsize;
     purif->X_block = (double *) mkl_malloc (meshsize * sizeof (double), 64);
@@ -254,7 +252,6 @@ void destroy_purif (purif_t * purif)
     free (purif);
 }
 
-
 int compute_purification(purif_t * purif, double *F_block, double *D_block)
 {
     struct timeval tv1;
@@ -359,8 +356,8 @@ int compute_purification(purif_t * purif, double *F_block, double *D_block)
                                (double) (nbf - nobtls) / (mu_bar - hmin));
 
              if (myrank == 0) {
-                printf("mu_bar = %e, lambda = %e,"
-                       " hmax = %e, hmin = %e, nobtls = %d\n",
+                printf("mu_bar = %le, lambda = %le,"
+                       " hmax = %le, hmin = %le, nobtls = %d\n",
                        mu_bar, lambda, hmax, hmin, nobtls);
             }           
             // initial "guess" for density matrix
@@ -488,7 +485,6 @@ int compute_purification(purif_t * purif, double *F_block, double *D_block)
     return it;
 }
 
-
 void compute_diis (PFock_t pfock, purif_t * purif,
                    double *D_block, double *F_block, int iter)
 {
@@ -499,26 +495,6 @@ void compute_diis (PFock_t pfock, purif_t * purif,
     double *S_block = purif->S_block;
     double *workm = purif->D2_block;
     double *b_mat = purif->b_mat;
-#if defined(__CHECK_FOR_NAN__)		
-    assert (X_block != NULL);
-    assert (S_block != NULL);
-    assert (workm != NULL);
-    assert (b_mat != NULL);
-    // NaN check
-    printf ("NaN check: Starting compute_diis...\n");
-    double x_b = X_block[0];
-    if (x_b != x_b)
-	assert(!"compute_diis: NaN detected (X_block)");
-    double s_b = S_block[0];
-    if (s_b != s_b)
-	assert(!"compute_diis: NaN detected (S_block)");
-    double w_m = workm[0];
-    if (w_m != w_m)
-	assert(!"compute_diis: NaN detected (workm)");
-    double b_m = b_mat[0];
-    if (b_m != b_m)
-	assert(!"compute_diis: NaN detected (bmat)");
-#endif
     double *F_vecs = purif->F_vecs;
     double *diis_vecs = purif->diis_vecs;
     int *nr = purif->nr_purif;
@@ -552,15 +528,6 @@ void compute_diis (PFock_t pfock, purif_t * purif,
                 cur_diis = &(diis_vecs[cur_idx * meshsize]);
                 cur_F = &(F_vecs[cur_idx * meshsize]);
             }
-#if defined(__CHECK_FOR_NAN__)		
-	    printf ("NaN check: Before local Dgemm (called from compute_diis, for iters > 1)\n");
-	    double f_b = F_block[0];
-	    if (f_b != f_b)
-		assert(!"compute_diis: NaN detected (F_block)");
-	    double d_b = D_block[0];
-	    if (d_b != d_b)
-		assert(!"compute_diis: NaN detected (D_block)");
-#endif
             // Ctator = X*(F*D*S - S*D*F)*X;
             pdgemm3D_2(myrow, mycol, mygrd, comm_row, comm_col, comm_grd,
                        comm0, nr, nc, nrows, ncols,
@@ -622,15 +589,6 @@ void compute_diis (PFock_t pfock, purif_t * purif,
             } /* if (purif->runpurif == 1) */
             MPI_Bcast (&(purif->bmax_id), 1, MPI_DOUBLE, 0, comm0);
         } /* if (iter > 1) */
-
-#if defined(__CHECK_FOR_NAN__)	
-	// X_block is a source to other intermediate
-	// arrays
-	printf ("NaN check: Before local Dgemm (called from compute_diis)\n");
-	double x_b = X_block[0];
-	if (x_b != x_b)
-	    assert(!"compute_diis: NaN detected (X_block)");
-#endif
         // F = X*F*X;
         pdgemm3D_2(myrow, mycol, mygrd, comm_row, comm_col, comm_grd,
                    comm0, nr, nc, nrows, ncols,
@@ -647,7 +605,7 @@ void compute_diis (PFock_t pfock, purif_t * purif,
                 // coeffs = inv(b_mat) * rhs;
                 if (myrank == 0) {
                     int sizeb = purif->len_diis + 1;
-                    __declspec(align (64)) double b_inv[LDBMAT * LDBMAT];
+		    __declspec(align (64)) double b_inv[LDBMAT * LDBMAT];
                     __declspec(align (64)) int ipiv[LDBMAT];
                     memcpy(b_inv, b_mat, LDBMAT * LDBMAT * sizeof (double));
                     LAPACKE_dgetrf(LAPACK_ROW_MAJOR, sizeb, sizeb, b_inv,
@@ -676,7 +634,6 @@ void compute_diis (PFock_t pfock, purif_t * purif,
 
     MPI_Barrier(MPI_COMM_WORLD);
 }
-
 
 #if 0
 static void peig(int ga_A, int ga_B, int n, int nprow, int npcol, double *eval)

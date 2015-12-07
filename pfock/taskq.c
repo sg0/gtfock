@@ -69,7 +69,11 @@ void reset_taskq(PFock_t pfock)
 #endif
 }
 
-
+// Note: Whenever GA_Sync is called in GTFock, we call
+// ElGlobalArraysSync_d (not _i), because _i is only
+// used in taskq.c, and RMAInterface AtomicIncrement is
+// end-to-end blocking (so there is no need for a separate
+// sync/flush)
 int taskq_next(PFock_t pfock, int myrow, int mycol, int ntasks)
 {
     int idx[2];

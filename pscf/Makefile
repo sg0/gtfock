@@ -12,10 +12,6 @@ ifeq "${SCF_OUT}" "1"
 CFLAGS += -D__SCF_OUT__
 endif
 
-ifeq "${CHECK_FOR_NAN}" "1"
-CFLAGS += -D__CHECK_FOR_NAN__
-endif
-
 ifeq "${ELEMENTAL}" "1"
 INC = -I./                  \
       -I../install          \
@@ -38,14 +34,13 @@ PFOCK_LIBS = ../install/libpfock.a
 ifeq "${ELEMENTAL}" "1"
 CFLAGS += -DUSE_ELEMENTAL 
 LDFLAGS = -L${MPI_LIBDIR}       \
-          -L${MPI_LIBSUBDIR}    \
           -L${SCALAPACK_LIBDIR} \
-          -L${EL_LIBDIR}        \
           -L${BLAS_LIBDIR}      \
+          -L${EL_LIBDIR}        \
           -L${ERD_LIBDIR}
 LIBS = ${MPI_LIBS}       \
-       ${BLAS_LIBS}      \
        ${SCALAPACK_LIBS} \
+       ${BLAS_LIBS}      \
        ${PFOCK_LIBS}     \
        ${ERD_LIBS}       \
        ${EL_LIBS}        \
@@ -58,8 +53,8 @@ LDFLAGS = -L${MPI_LIBDIR}       \
           -L${BLAS_LIBDIR}      \
           -L${ERD_LIBDIR}
 LIBS = ${MPI_LIBS}       \
-       ${BLAS_LIBS}      \
        ${SCALAPACK_LIBS} \
+       ${BLAS_LIBS}      \
        ${PFOCK_LIBS}     \
        ${ERD_LIBS}       \
        ${GA_LIBS}        \

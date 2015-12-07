@@ -32,27 +32,23 @@ void load_local_bufD(PFock_t pfock)
     int lo[2];
     int hi[2];
     int ldD;   
-        
+    lo[0] = myrank;
+    hi[0] = myrank;
+    lo[1] = 0;  
+    #if defined(USE_ELEMENTAL)
+    typedef ElInt ga_nbhdl_t;
+    #endif
     for (int i = 0; i < pfock->num_dmat2; i++) {
     #ifdef GA_NB
-    #if defined(USE_ELEMENTAL)
-        typedef ElInt ga_nbhdl_t;
+	ga_nbhdl_t nbnb;
     #endif
-        ga_nbhdl_t nbnb;
-    #endif
-	
         // load local buffers
 	double *D1;
         double *D2;
         double *D3;
-        
 	int ldD1 = pfock->ldX1;
         int ldD2 = pfock->ldX2;
         int ldD3 = pfock->ldX3; 
-    
-	lo[0] = myrank;
-	hi[0] = myrank;
-	lo[1] = 0;    
 	hi[1] = pfock->sizeX1 - 1;
     #if defined(USE_ELEMENTAL)    
 	ElGlobalArraysAccess_d( eldga, pfock->ga_D1[i], lo, hi, &D1, &ldD );
@@ -151,11 +147,11 @@ void load_local_bufD(PFock_t pfock)
         lo[1] = 0;    
         hi[1] = pfock->sizeX1 - 1;
     #if defined(USE_ELEMENTAL)
-	ElGlobalArraysRelease_d( eldga, pfock->ga_D1[i], lo, hi );
+	ElGlobalArraysReleaseUpdate_d( eldga, pfock->ga_D1[i], lo, hi );
         hi[1] = pfock->sizeX2 - 1;
-	ElGlobalArraysRelease_d( eldga, pfock->ga_D2[i], lo, hi );
+	ElGlobalArraysReleaseUpdate_d( eldga, pfock->ga_D2[i], lo, hi );
         hi[1] = pfock->sizeX3 - 1;
-	ElGlobalArraysRelease_d( eldga, pfock->ga_D3[i], lo, hi );
+	ElGlobalArraysReleaseUpdate_d( eldga, pfock->ga_D3[i], lo, hi );
     #else
         NGA_Release_update(pfock->ga_D1[i], lo, hi);
         hi[1] = pfock->sizeX2 - 1;
@@ -184,33 +180,35 @@ void store_local_bufF(PFock_t pfock)
 #else
     int *ga_K = pfock->ga_K;
 #endif
-    
-    for (int i = 0; i < pfock->num_dmat2; i++) {
-    #ifdef GA_NB    
+    lo[0] = myrank;
+    hi[0] = myrank;
+    lo[1] = 0;   
     #if defined(USE_ELEMENTAL)
         typedef ElInt ga_nbhdl_t;
     #endif
+    for (int i = 0; i < pfock->num_dmat2; i++) {
+    #ifdef GA_NB    
         ga_nbhdl_t nbnb;
     #endif
         // local buffers
         double *F1;
         double *F2;
         double *F3;
-        
-	lo[0] = myrank;
-        hi[0] = myrank;
-        lo[1] = 0;
         hi[1] = pfock->sizeX1 - 1;
 #if defined(USE_ELEMENTAL)
 	ElGlobalArraysAccess_d( eldga, pfock->ga_F1[i], lo, hi, &F1, &ldF );
+        lo[1] = 0;
         hi[1] = pfock->sizeX2 - 1;
 	ElGlobalArraysAccess_d( eldga, pfock->ga_F2[i], lo, hi, &F2, &ldF );
+        lo[1] = 0;
         hi[1] = pfock->sizeX3 - 1;
 	ElGlobalArraysAccess_d( eldga, pfock->ga_F3[i], lo, hi, &F3, &ldF );
 #else
         NGA_Access(pfock->ga_F1[i], lo, hi, &F1, &ldF);
+        lo[1] = 0;
         hi[1] = pfock->sizeX2 - 1;
         NGA_Access(pfock->ga_F2[i], lo, hi, &F2, &ldF);
+        lo[1] = 0;
         hi[1] = pfock->sizeX3 - 1;
         NGA_Access(pfock->ga_F3[i], lo, hi, &F3, &ldF);
 #endif
@@ -310,14 +308,18 @@ void store_local_bufF(PFock_t pfock)
         hi[1] = pfock->sizeX1 - 1;
     #if defined(USE_ELEMENTAL)
 	ElGlobalArraysRelease_d( eldga, pfock->ga_F1[i], lo, hi );
+        lo[1] = 0;
         hi[1] = pfock->sizeX2 - 1;
 	ElGlobalArraysRelease_d( eldga, pfock->ga_F2[i], lo, hi );
+        lo[1] = 0;
         hi[1] = pfock->sizeX3 - 1;
 	ElGlobalArraysRelease_d( eldga, pfock->ga_F3[i], lo, hi );
     #else
         NGA_Release(pfock->ga_F1[i], lo, hi);
+        lo[1] = 0;
         hi[1] = pfock->sizeX2 - 1;
         NGA_Release(pfock->ga_F2[i], lo, hi);
+        lo[1] = 0;
         hi[1] = pfock->sizeX3 - 1;
         NGA_Release(pfock->ga_F3[i], lo, hi);
      #endif

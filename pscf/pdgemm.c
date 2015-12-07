@@ -187,26 +187,13 @@ void pdgemm3D_2(int myrow, int mycol, int mygrd,
     copyMat(nrows, ncols, A_block_, ncols, A_block, ncols0);
     memset(B_block, 0, sizeof (double) * nrows0 * ncols0);
     copyMat(nrows, ncols, B_block_, ncols, B_block, ncols0);
-
-#if defined(__CHECK_FOR_NAN__)		
-	printf ("NaN check: Before local Dgemm (called from pdgemm3D_2)\n");
-	double a_b = A_block[0];
-	if (a_b != a_b)
-	    assert(!"pdgemm3D_2: NaN detected (A_block)");
-	double b_b = B_block[0];
-	if (b_b != b_b)
-	    assert(!"pdgemm3D_2: NaN detected (B_block)");
-	double c_b = C_block[0];
-	if (c_b != c_b)
-	    assert(!"pdgemm3D_2: NaN detected (C_Block)");
-#endif
     {
         int nrows = nrows0;
         int ncols = ncols0;
         double *B_block_copy = tmpbuf->A_i;
-        // (double *) _mm_malloc (sizeof (double) * nrows * ncols, 64);
+        //double *B_block_copy = (double *) _mm_malloc (sizeof (double) * nrows * ncols, 64);
         double *C_i = tmpbuf->C_i;
-        // (double *) _mm_malloc (sizeof (double) * nrows * ncols, 64);
+        //double *C_i = (double *) _mm_malloc (sizeof (double) * nrows * ncols, 64);
 
         MPI_Bcast(A_block, nrows * ncols, MPI_DOUBLE, 0, comm_grd);
 

@@ -20,6 +20,10 @@ INC = -I./                  \
       -I${MPI_INCDIR}       \
       -I${SCALAPACK_INCDIR} \
       -I${BLAS_INCDIR}
+ifeq "${CASPER}" "1"
+CFLAGS += -DUSE_CSPR -DDEBUG -DCSPG_DEBUG    
+INC += -I${CSPR_INCDIR}
+endif
 else
 INC = -I./                  \
       -I../install          \
@@ -45,6 +49,10 @@ LIBS = ${MPI_LIBS}       \
        ${ERD_LIBS}       \
        ${EL_LIBS}        \
        -lirc -lifcore -limf
+ifeq "${CASPER}" "1"
+LDFLAGS += -L${CSPR_LIBDIR}
+LIBS += ${CSPR_LIBS}
+endif
 else
 LDFLAGS = -L${MPI_LIBDIR}       \
           -L${GA_LIBDIR}        \

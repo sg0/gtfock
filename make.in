@@ -6,6 +6,7 @@
 INTELROOT = /opt/intel/composer_xe_2015
 MKLROOT = /opt/intel/composer_xe_2015/mkl
 MPIROOT = /home/sg/builds/mpich-intel
+CSPROOT = /home/sg/builds/casper
 
 #CC  = ${INTELROOT}/bin/intel64/icc
 #CXX = ${INTELROOT}/bin/intel64/icpc
@@ -20,7 +21,8 @@ AR  = ${INTELROOT}/bin/xiar rcs
 MPICC  = ${MPIROOT}/bin/mpicc
 MPICXX  = ${MPIROOT}/bin/mpicxx
 
-ELEMENTAL       = 0
+CASPER          = 1
+ELEMENTAL       = 1
 DYNAMIC         = 0
 DO_SCF          = 0
 SCF_TIMMING     = 0
@@ -39,6 +41,10 @@ CFLAGS    = -O3 -fasm-blocks -Wall -g -openmp -std=c11 -fimf-arch-consistency=tr
 #CFLAGS    = -O3 -Wall -g  -qopenmp -std=c99 -fasm-blocks
 CFLAGS   += -Wunknown-pragmas -Wunused-variable
 CFLAGS   += ${OPTFLAGS}
+
+CSPR_INCDIR      = ${CSPROOT}/include
+CSPR_LIBDIR      = ${CSPROOT}/lib
+CSPR_LIBS	 = -lcasper
 
 BLAS_INCDIR      = ${MKLROOT}/include
 BLAS_LIBDIR      = ${MKLROOT}/lib/intel64

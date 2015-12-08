@@ -21,6 +21,10 @@ INC = -I.                   \
       -I${BLAS_INCDIR}      \
       -I${EL_INCDIR}        \
       -I${ERD_INCDIR}
+ifeq "${CASPER}" "1"
+CFLAGS += -DUSE_CASPER -DDEBUG -DCSPG_DEBUG    
+INC += -I${CSPR_INCDIR}
+endif
 else
 INC = -I.                   \
       -I${MPI_INCDIR}       \
